@@ -64,10 +64,7 @@ export const loginController = asyncHandler(async (req, res) => {
 
     res.cookie('tokenai', token)
 
-    res.status(200).json({
-        success: true,
-        message: "Login successful",
-    });
+    res.status(200).json(new ApiResponse(200, payload,"Login successful"));
 
 }
 )
@@ -126,9 +123,7 @@ export const getUserProfile = asyncHandler(async (req, res) => {
 
 
 export const get_me = asyncHandler(async (req, res) => {
-
     const userdata = req.user;
-
     if (!userdata) {
         throw new ApiError(401, "Unauthorized access");
     }
@@ -138,7 +133,14 @@ export const get_me = asyncHandler(async (req, res) => {
             new ApiResponse(200, userdata, "User fetched successfully")
         );
 });
-
+export const LogoutUser = asyncHandler(async (req, res) => {
+    res.clearCookie('tokenai')
+    return res
+        .status(200)
+        .json(
+            new ApiResponse(200, "User logout successfully")
+        );
+});
 
 export const UserChangePassword = asyncHandler(async (req, res) => {
 
