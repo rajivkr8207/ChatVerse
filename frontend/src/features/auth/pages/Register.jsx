@@ -1,5 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import useAuth from "../hook/useAuth";
+import { useSelector } from "react-redux";
 
 export default function Register() {
   const [formData, setFormData] = useState({
@@ -8,24 +10,30 @@ export default function Register() {
     email: "",
     password: "",
   });
-
+  const { handleRegister } = useAuth()
   const handleChange = (e) => {
     setFormData({
       ...formData,
       [e.target.name]: e.target.value,
     });
   };
+  const user = useSelector((state) => state.auth.user)
+  const loading = useSelector((state) => state.auth.loading)
 
-  const handleSubmit = (e) => {
+  if (!loading && user) {
+    return <Navigate to={'/'} replace />
+  }
+  const handleSubmit = async (e) => {
     e.preventDefault();
     console.log(formData);
+    await handleRegister(formData)
   };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-900 text-white">
-      
+
       <div className="w-full max-w-md bg-gray-800 rounded-2xl shadow-lg p-8">
-        
+
         <h2 className="text-3xl font-bold text-center mb-6">
           Create Account
         </h2>
@@ -94,7 +102,7 @@ export default function Register() {
         </form>
 
         <p className="text-sm text-gray-400 text-center mt-6">
-          Already have an account? 
+          Already have an account?
           <Link to='/login' className="text-blue-500 cursor-pointer ml-1">
             Login
           </Link>

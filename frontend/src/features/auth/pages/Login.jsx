@@ -1,6 +1,7 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, Navigate } from "react-router-dom";
 import useAuth from "../hook/useAuth";
+import { useSelector } from "react-redux";
 
 export default function Login() {
     const [formData, setFormData] = useState({
@@ -8,6 +9,12 @@ export default function Login() {
         password: "",
     });
     const { handleLogin } = useAuth()
+    const user  = useSelector((state)=> state.auth.user)
+    const loading  = useSelector((state)=> state.auth.loading)
+
+    if (!loading && user){
+        return <Navigate to={'/'} replace />
+    }
     const handleChange = (e) => {
         setFormData({
             ...formData,
@@ -20,6 +27,7 @@ export default function Login() {
         await handleLogin(formData)
         // console.log(formData);
     };
+
 
     return (
         <div className="min-h-screen flex items-center justify-center bg-gray-900 text-white">

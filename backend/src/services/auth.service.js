@@ -33,7 +33,7 @@ class AuthService {
 
     // find user by id
     async findById(userId) {
-        const user = await UserModel.findById(userId);
+        const user = await UserModel.findById(userId).select('+password');
         return user;
     }
 

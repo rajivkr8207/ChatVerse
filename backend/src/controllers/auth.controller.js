@@ -113,11 +113,17 @@ export const getUserProfile = asyncHandler(async (req, res) => {
     if (!user) {
         throw new ApiError(404, "User not found");
     }
-
+    const userdata = {
+        fullName : user.fullName,
+        email: user.email,
+        username: user.username,
+        _id: user._id,
+        createdAt: user.createdAt
+    }
     return res
         .status(200)
         .json(
-            new ApiResponse(200, user, "User profile fetched successfully")
+            new ApiResponse(200, userdata, "User profile fetched successfully")
         );
 });
 
@@ -133,6 +139,7 @@ export const get_me = asyncHandler(async (req, res) => {
             new ApiResponse(200, userdata, "User fetched successfully")
         );
 });
+
 export const LogoutUser = asyncHandler(async (req, res) => {
     res.clearCookie('tokenai')
     return res
@@ -145,7 +152,6 @@ export const LogoutUser = asyncHandler(async (req, res) => {
 export const UserChangePassword = asyncHandler(async (req, res) => {
 
     const { oldPassword, newPassword } = req.body
-
     if (!oldPassword || !newPassword) {
         throw new ApiError(400, "Old password and new password are required");
     }

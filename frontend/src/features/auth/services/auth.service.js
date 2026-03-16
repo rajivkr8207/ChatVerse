@@ -19,6 +19,11 @@ export async function VerifyEmailSendAgain(email) {
 }
 
 
+export async function UserChangePassowrd({oldPassword, newPassword}) {
+    const res =  await api.patch(`/auth/change-password`,{oldPassword, newPassword})
+    return res.data
+}
+
 export async function UserProfie() {
     const res = await api.get('/auth/profile')
     return res.data

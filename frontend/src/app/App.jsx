@@ -3,7 +3,16 @@ import { Router } from "./app.routes"
 import { store } from "./app.store"
 import { Provider } from 'react-redux'
 import { ToastContainer } from 'react-toastify'
+import { useEffect } from "react"
+import useAuth from "../features/auth/hook/useAuth"
 const App = () => {
+const {handleGetme} = useAuth()
+  // const dispatch = useDispatch()
+
+    useEffect(() => {
+        handleGetme()
+    }, [])
+
   return (
     <>
       <Provider store={store}>
