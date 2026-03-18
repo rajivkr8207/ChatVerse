@@ -1,85 +1,136 @@
 import React from "react";
-import {  Plus, 
-  Settings, 
+import {
+  Plus,
+  Settings,
   LogOut,
   User,
-  MessageCircle, 
+  MessageCircle,
   Moon,
   Sun,
   Trash2,
-  Edit3} from "lucide-react";
+  Edit3
+} from "lucide-react";
 
-export default function Sidebar({sidebarOpen,darkMode, startNewChat, chatHistory, selectChat, deleteChat, toggleDarkMode}) {
+export default function Sidebar({ sidebarOpen, darkMode, startNewChat, chatHistory, selectChat, deleteChat, toggleDarkMode }) {
   return (
-    <div 
-           className={`${
-             sidebarOpen ? 'w-64' : 'w-0'
-           } bg-gray-900 text-white transition-all duration-300 overflow-hidden flex flex-col`}
-         >
-           <div className="p-4">
-             <button
-               onClick={startNewChat}
-               className="w-full flex items-center gap-2 px-4 py-3 bg-gray-800 hover:bg-gray-700 rounded-lg transition-colors border border-gray-700"
-             >
-               <Plus size={18} />
-               <span>New Chat</span>
-             </button>
-           </div>
-   
-           {/* Chat History */}
-           <div className="flex-1 overflow-y-auto px-2">
-             {chatHistory.map((chat) => (
-               <div
-                 key={chat.id}
-                 onClick={() => selectChat(chat.id)}
-                 className={`group flex items-center justify-between px-3 py-3 my-1 rounded-lg cursor-pointer transition-colors ${
-                   chat.active 
-                     ? 'bg-gray-800' 
-                     : 'hover:bg-gray-800/50'
-                 }`}
-               >
-                 <div className="flex items-center gap-3 truncate">
-                   <MessageCircle size={16} className="text-gray-400" />
-                   <span className="text-sm truncate">{chat.title}</span>
-                 </div>
-                 <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                   <button className="p-1 hover:bg-gray-700 rounded">
-                     <Edit3 size={14} />
-                   </button>
-                   <button 
-                     onClick={(e) => deleteChat(chat.id, e)}
-                     className="p-1 hover:bg-gray-700 rounded text-red-400"
-                   >
-                     <Trash2 size={14} />
-                   </button>
-                 </div>
-               </div>
-             ))}
-           </div>
-   
-           {/* Sidebar Footer */}
-           <div className="p-4 border-t border-gray-800">
-             <div className="flex items-center gap-3 mb-3 px-3 py-2 hover:bg-gray-800 rounded-lg cursor-pointer">
-               <User size={18} />
-               <span className="text-sm">My Profile</span>
-             </div>
-             <div className="flex items-center gap-3 mb-3 px-3 py-2 hover:bg-gray-800 rounded-lg cursor-pointer">
-               <Settings size={18} />
-               <span className="text-sm">Settings</span>
-             </div>
-             <div className="flex items-center justify-between px-3 py-2">
-               <div className="flex items-center gap-3">
-                 <button onClick={toggleDarkMode} className="p-2 hover:bg-gray-800 rounded-lg">
-                   {darkMode ? <Sun size={18} /> : <Moon size={18} />}
-                 </button>
-                 <span className="text-sm">Theme</span>
-               </div>
-             </div>
-             <div className="flex items-center gap-3 px-3 py-2 mt-2 hover:bg-gray-800 rounded-lg cursor-pointer text-red-400">
-               <LogOut size={18} />
-               <span className="text-sm">Logout</span>
-             </div>
-           </div>
-         </div>
+    <div
+      className={`${sidebarOpen ? 'w-72' : 'w-0'
+        } bg-gradient-to-b from-neutral-900 to-neutral-950 text-white transition-all duration-300 ease-in-out overflow-hidden flex flex-col border-r border-neutral-800/50`}
+    >
+      {/* Header with New Chat Button */}
+      <div className="p-5 border-b border-neutral-800/50">
+        <button
+          onClick={startNewChat}
+          className="w-full flex items-center justify-center gap-3 px-4 py-3.5 bg-gradient-to-r from-orange-600 to-orange-700 hover:from-orange-700 hover:to-orange-800 rounded-xl transition-all duration-200 border border-orange-500/20 shadow-lg shadow-orange-600/20 group"
+        >
+          <Plus size={18} className="group-hover:rotate-90 transition-transform duration-200" />
+          <span className="font-medium">New Chat</span>
+        </button>
+      </div>
+
+      {/* Chat History */}
+      <div className="flex-1 overflow-y-auto px-3 py-4 space-y-1 custom-scrollbar">
+        {chatHistory.map((chat) => (
+          <div
+            key={chat.id}
+            onClick={() => selectChat(chat._id)}
+            className={`group relative flex items-center justify-between px-4 py-3.5 my-1 rounded-xl cursor-pointer transition-all duration-200 ${chat.active
+                ? 'bg-gradient-to-r from-orange-600/20 to-orange-600/5 border-l-4 border-l-orange-500'
+                : 'hover:bg-neutral-800/50 border-l-4 border-l-transparent hover:border-l-neutral-600'
+              }`}
+          >
+            <div className="flex items-center gap-3 truncate flex-1">
+              <div className={`p-1.5 rounded-lg ${chat.active ? 'bg-orange-500/20' : 'bg-neutral-800/50 group-hover:bg-neutral-700/50'
+                } transition-colors duration-200`}>
+                <MessageCircle size={16} className={chat.active ? 'text-orange-400' : 'text-neutral-400'} />
+              </div>
+              <span className={`text-sm font-medium truncate ${chat.active ? 'text-white' : 'text-neutral-300'
+                }`}>
+                {chat.title}
+              </span>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-all duration-200 ml-2">
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  // Handle edit
+                }}
+                className="p-1.5 hover:bg-neutral-700/70 rounded-lg transition-colors duration-200 text-neutral-400 hover:text-neutral-200"
+              >
+                <Edit3 size={14} />
+              </button>
+              <button
+                onClick={(e) => deleteChat(chat._id, e)}
+                className="p-1.5 hover:bg-red-500/20 rounded-lg transition-colors duration-200 text-neutral-400 hover:text-red-400"
+              >
+                <Trash2 size={14} />
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Sidebar Footer */}
+      <div className="p-4 border-t border-neutral-800/50 bg-gradient-to-t from-neutral-900 to-transparent">
+        {/* Profile Section */}
+        <div className="mb-2 px-3 py-2.5 hover:bg-neutral-800/70 rounded-xl transition-all duration-200 cursor-pointer group">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-gradient-to-br from-orange-500/20 to-purple-500/20 rounded-xl group-hover:scale-110 transition-transform duration-200">
+              <User size={18} className="text-orange-400 group-hover:text-orange-300" />
+            </div>
+            <div className="flex-1">
+              <span className="text-sm font-medium block text-neutral-200">My Profile</span>
+              <span className="text-xs text-neutral-500">View account</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Settings */}
+        <div className="mb-2 px-3 py-2.5 hover:bg-neutral-800/70 rounded-xl transition-all duration-200 cursor-pointer group">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-gradient-to-br from-neutral-700 to-neutral-800 rounded-xl group-hover:rotate-90 transition-transform duration-200">
+              <Settings size={18} className="text-neutral-300" />
+            </div>
+            <div className="flex-1">
+              <span className="text-sm font-medium block text-neutral-200">Settings</span>
+              <span className="text-xs text-neutral-500">Preferences</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Theme Toggle */}
+        <div className="mb-2 px-3 py-2.5 hover:bg-neutral-800/70 rounded-xl transition-all duration-200 cursor-pointer group">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <button
+                onClick={toggleDarkMode}
+                className="p-2 bg-neutral-800/70 hover:bg-neutral-700 rounded-xl transition-all duration-200 group-hover:scale-110"
+              >
+                {darkMode ?
+                  <Sun size={18} className="text-yellow-400" /> :
+                  <Moon size={18} className="text-neutral-300" />
+                }
+              </button>
+              <span className="text-sm font-medium text-neutral-200">Theme</span>
+            </div>
+            <div className="text-xs px-2 py-1 bg-neutral-800 rounded-lg text-neutral-400">
+              {darkMode ? 'Dark' : 'Light'}
+            </div>
+          </div>
+        </div>
+
+        {/* Logout */}
+        <div className="mt-4 px-3 py-2.5 hover:bg-red-500/10 rounded-xl transition-all duration-200 cursor-pointer group">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-red-500/10 rounded-xl group-hover:bg-red-500/20 transition-colors duration-200">
+              <LogOut size={18} className="text-red-400 group-hover:text-red-300" />
+            </div>
+            <span className="text-sm font-medium text-red-400 group-hover:text-red-300">Logout</span>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }

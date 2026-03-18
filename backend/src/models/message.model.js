@@ -5,7 +5,7 @@ const messageSchema = new mongoose.Schema(
         chat: {
             type: mongoose.Schema.Types.ObjectId,
             ref: "Chat",
-            required: [true, "User is required"],
+            required: [true, "chat is required"],
             index: true,
         },
         content: {

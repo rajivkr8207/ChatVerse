@@ -1,11 +1,85 @@
 import ChatModel from "../models/chat.model.js";
+import MessageModel from "../models/message.model.js";
+import { ChatGeminimessage, GenrateMessageTilte } from "../services/ai.server.js";
+import { chatService } from "../services/chat.service.js";
+import { ApiError } from "../utils/api-error.js";
 import { ApiResponse } from "../utils/api-response.js";
 import { asyncHandler } from "../utils/async-handler.js";
 
 export const SendMessage = asyncHandler(async (req, res) => {
-    const {message} = req.body;
-    const chat = await ChatModel.create({
+    const { message, chatid } = req.body;
+    const userid = req.user.id
+    const reschat  = await ChatModel.findById(chatid)
+    console.log(message, chatid, reschat);
+    let title = null
+    let chat = null
+    if (!chatid || reschat.title == "New chat") {
+        title = await GenrateMessageTilte(message)
+        if (reschat){
+            chat = await chatService.UpdateChat(chatid, title)
+        }else{
+            chat = await chatService.createChat(userid, title)
+        }
+    }
+    const usermsg = await chatService.createMessage(chatid || chat._id, message, 'user')
+    const allmsg = await MessageModel.find({ chat: chatid })
+    const airesponse = await ChatGeminimessage(allmsg)
+    const aimesg = await chatService.createMessage(chatid || chat._id, airesponse, 'ai')
+    res.status(200).json(new ApiResponse(200, { usermsg,title, aimesg }, "Chat create Successfully"));
+})
+
+export const CreateNewChat = asyncHandler(async (req, res) => {
+    const userid = req.user.id
+    const chat = await chatService.createChat(userid, "New chat")
+    res.status(201).json(new ApiResponse(201, { chat }, "Chat create Successfully"));
+})
+
+export const GetAllchat = asyncHandler(async (req, res) => {
+    const userid = req.user.id
+    const page = parseInt(req.query.page) || 1
+    const limit = parseInt(req.query.limit) || 10
+    const skip = (page - 1) * limit
+
+    const allchat = await ChatModel.find({ user: userid })
+        .limit(limit)
+        .skip(skip)
+        .sort({ createdAt: -1 })
+
+    const totalChats = await ChatModel.countDocuments({ user: userid })
+
+    res.status(200).json(new ApiResponse(200, {
+        chats: allchat,
+        pagination: {
+            page,
+            limit,
+            total: totalChats,
+            totalPages: Math.ceil(totalChats / limit)
+        }
+    }))
+})
+
+
+
+export const GetChatById = asyncHandler(async (req, res) => {
+    const chatid = req.params.chatid
+    const chatmsg = await MessageModel.find({
+        chat: chatid
+    })
+    res.status(200).json(new ApiResponse(200, { chatmsg }))
+})
+
+
+export const ChatDeleteById = asyncHandler(async (req, res) => {
+    const chatid = req.params.chatid
+    const chat = await ChatModel.findOneAndDelete({
+        _id: chatid,
         user: req.user.id
-    });
-    res.status(200).json(new ApiResponse(200, chat, "Chat create Successfully"));
+    })
+    await MessageModel.deleteMany({
+        chat: chatid
+    })
+    if (!chat) {
+        return res.status(400).json(new ApiError(400, "Chat not found"))
+    }
+    res.status(200).json(new ApiResponse(200, "Chat deleted successfully"))
 })

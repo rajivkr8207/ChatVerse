@@ -4,32 +4,34 @@ import {
   Send,
   Menu,
   X,
-  Plus,
-  Settings,
-  LogOut,
-  User,
-  Moon,
-  Sun,
-  Trash2,
-  Edit3
 } from 'lucide-react';
+import ReactMarkdown from 'react-markdown'
 import Sidebar from '../components/SideNavbar';
 import useChat from '../hook/useChat';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
+import { Setchatid, Setchatmessage } from '../chat.slice';
+import { toast } from 'react-toastify';
 
 const Home = () => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [darkMode, setDarkMode] = useState(false);
   const [message, setMessage] = useState('');
-  const [messages, setMessages] = useState([
-    { id: 1, text: 'Hello! How can I help you today?', sender: 'ai', timestamp: new Date() }
-  ]);
-  const [chatHistory, setChatHistory] = useState([
-    { id: 1, title: 'Getting started with React', active: true },
-    { id: 2, title: 'JavaScript concepts discussion', active: false },
-    { id: 3, title: 'Project ideas for portfolio', active: false },
-    { id: 4, title: 'Debugging help needed', active: false },
-  ]);
+  const dispatch = useDispatch()
+  const chats = useSelector(state => state.chat.chats)
+  const chatID = useSelector(state => state.chat.chatId)
+  const isloading = useSelector(state => state.chat.isloading)
+
+
+
+
+  const messages = useSelector(state => state.chat.chatmessages)
+
+
+  const { handleGetAllChat, handleDeleteChat, handleCreatechat, handleGetChatbyId, handleSendMessageApi } = useChat()
+  useEffect(() => {
+    handleGetAllChat()
+  }, [])
+
 
   const toggleSidebar = () => setSidebarOpen(!sidebarOpen);
   const toggleDarkMode = () => setDarkMode(!darkMode);
@@ -37,141 +39,142 @@ const Home = () => {
   const handleSendMessage = (e) => {
     e.preventDefault();
     if (!message.trim()) return;
-
-    // Add user message
-    const userMessage = {
-      id: messages.length + 1,
-      text: message,
-      sender: 'user',
-      timestamp: new Date()
-    };
-
-    setMessages([...messages, userMessage]);
-    setMessage('');
-
-    // Simulate AI response
-    setTimeout(() => {
-      const aiResponse = {
-        id: messages.length + 2,
-        text: "Thanks for your message! I'm here to help. Feel free to ask me anything about coding, general knowledge, or just chat!",
-        sender: 'ai',
-        timestamp: new Date()
-      };
-      setMessages(prev => [...prev, aiResponse]);
-    }, 1000);
+    let data
+    if (chatID) {
+      data = {
+        message: message,
+        chatid: chatID
+      }
+    } else {
+      data = {
+        message: message,
+      }
+    }
+    handleSendMessageApi(data)
+    setMessage('')
   };
 
   const startNewChat = () => {
-    setMessages([
-      { id: 1, text: 'Hello! How can I help you today?', sender: 'ai', timestamp: new Date() }
-    ]);
-    // Add to chat history
-    const newChat = {
-      id: chatHistory.length + 1,
-      title: 'New conversation',
-      active: true
-    };
-    setChatHistory([newChat, ...chatHistory.map(ch => ({ ...ch, active: false }))]);
-  };
+    if (chats[0]?.title == "New chat") {
+      toast.error(`new chat already exist`);
+      return
+    }
+    dispatch(Setchatmessage([]))
+    dispatch(Setchatid(null))
+    handleCreatechat()
+  }
 
   const selectChat = (chatId) => {
-    setChatHistory(chatHistory.map(chat => ({
-      ...chat,
-      active: chat.id === chatId
-    })));
-    // In a real app, you'd load the messages for this chat
+    dispatch(Setchatid(chatId))
+    handleGetChatbyId(chatId)
   };
 
   const deleteChat = (chatId, e) => {
     e.stopPropagation();
-    setChatHistory(chatHistory.filter(chat => chat.id !== chatId));
-  };
-
-  const formatTime = (date) => {
-    return date.toLocaleTimeString('en-US', {
-      hour: '2-digit',
-      minute: '2-digit'
-    });
+    handleDeleteChat(chatId)
   };
 
 
   const chat = useChat()
 
-  // const user  = useSelector((state)=> state.auth.user)
 
   useEffect(() => {
     chat.initializeSocketconnection()
   }, [])
 
   return (
-    <div className={`h-screen flex ${darkMode ? 'dark' : ''}`}>
-      {/* Sidebar */}
-      <Sidebar sidebarOpen={sidebarOpen} darkMode={darkMode} startNewChat={startNewChat} chatHistory={chatHistory} selectChat={selectChat} deleteChat={deleteChat} toggleDarkMode={toggleDarkMode} />
+<div className={`h-screen flex ${darkMode ? 'dark' : ''}`}>
+  {/* Sidebar */}
+  <Sidebar sidebarOpen={sidebarOpen} darkMode={darkMode} startNewChat={startNewChat} chatHistory={chats} selectChat={selectChat} deleteChat={deleteChat} toggleDarkMode={toggleDarkMode} />
 
-      {/* Main Content */}
-      <div className="flex-1 flex flex-col bg-white dark:bg-gray-800">
-        {/* Header */}
-        <header className="border-b border-gray-200 dark:border-gray-700 p-4 flex items-center">
-          <button
-            onClick={toggleSidebar}
-            className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg mr-4"
+  {/* Main Content */}
+  <div className="flex-1 flex flex-col bg-gradient-to-br from-neutral-50 to-neutral-100 dark:from-neutral-900 dark:to-neutral-800">
+    {/* Header */}
+    <header className="border-b border-neutral-200/50 dark:border-neutral-700/50 bg-white/70 dark:bg-neutral-800/70 backdrop-blur-sm p-4 flex items-center sticky top-0 z-10">
+      <button
+        onClick={toggleSidebar}
+        className="p-2 hover:bg-neutral-100 dark:hover:bg-neutral-700 rounded-xl transition-all duration-200 mr-4 text-neutral-600 dark:text-neutral-300 hover:text-neutral-900 dark:hover:text-white"
+      >
+        {sidebarOpen ? <X size={20} /> : <Menu size={20} />}
+      </button>
+      <h1 className="text-xl font-semibold bg-gradient-to-r from-orange-600 to-red-600 dark:from-orange-400 dark:to-red-400 bg-clip-text text-transparent">
+        AI Assistant
+      </h1>
+    </header>
+
+    {/* Chat Messages */}
+    <div className="flex-1 overflow-y-auto p-6 space-y-6 scroll-smooth">
+      {messages?.map((msg) => (
+        <div
+          key={msg?.id}
+          className={`flex ${msg?.role === 'user' ? 'justify-end' : 'justify-start'} animate-fadeIn`}
+        >
+          <div
+            className={`max-w-[80%] lg:max-w-[70%] rounded-2xl p-4 shadow-sm ${
+              msg?.role === 'user'
+                ? 'bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-br-none'
+                : 'bg-white dark:bg-neutral-800 text-neutral-800 dark:text-neutral-100 rounded-bl-none border border-neutral-200/50 dark:border-neutral-700/50'
+            }`}
           >
-            {sidebarOpen ? <X size={20} /> : <Menu size={20} />}
-          </button>
-          <h1 className="text-xl font-semibold text-gray-800 dark:text-white">
-            AI Assistant
-          </h1>
-        </header>
-
-        {/* Chat Messages */}
-        <div className="flex-1 overflow-y-auto p-4 space-y-4">
-          {messages.map((msg) => (
-            <div
-              key={msg.id}
-              className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}
-            >
-              <div
-                className={`max-w-[70%] rounded-lg p-3 ${msg.sender === 'user'
-                    ? 'bg-blue-500 text-white'
-                    : 'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-white'
-                  }`}
-              >
-                {msg.sender === 'ai' && (
-                  <div className="flex items-center gap-2 mb-1">
-                    <MessageCircle size={16} className="text-blue-500" />
-                    <span className="text-xs font-semibold">AI Assistant</span>
-                  </div>
-                )}
-                <p className="text-sm">{msg.text}</p>
-                <p className="text-xs mt-1 opacity-70 text-right">
-                  {formatTime(msg.timestamp)}
-                </p>
+            {msg?.role === 'ai' && (
+              <div className="flex items-center gap-2 mb-2">
+                <div className="p-1 bg-orange-100 dark:bg-orange-900/30 rounded-lg">
+                  <MessageCircle size={14} className="text-orange-600 dark:text-orange-400" />
+                </div>
+                <span className="text-xs font-medium text-orange-600 dark:text-orange-400">AI Assistant</span>
               </div>
-            </div>
-          ))}
+            )}
+            
+            {msg?.role === 'user' ? (
+              <p className="text-[15px] leading-relaxed font-medium">{msg?.content}</p>
+            ) : (
+              <div className="prose prose-sm dark:prose-invert max-w-none">
+                <ReactMarkdown
+                  components={{
+                    p: ({ children }) => <p className='mb-3 last:mb-0 text-[15px] leading-relaxed'>{children}</p>,
+                    ul: ({ children }) => <ul className='mb-3 space-y-1 list-disc pl-5'>{children}</ul>,
+                    ol: ({ children }) => <ol className='mb-3 space-y-1 list-decimal pl-5'>{children}</ol>,
+                    li: ({ children }) => <li className='text-[15px] leading-relaxed'>{children}</li>,
+                    code: ({ children }) => <code className='rounded bg-neutral-100 dark:bg-neutral-700 px-1.5 py-0.5 font-mono text-sm text-pink-600 dark:text-pink-400'>{children}</code>,
+                    pre: ({ children }) => <pre className='mb-3 overflow-x-auto rounded-xl bg-neutral-900 dark:bg-neutral-950 p-4 font-mono text-sm text-neutral-100'>{children}</pre>
+                  }}
+                >
+                  {msg?.content}
+                </ReactMarkdown>
+              </div>
+            )}
+            <p className="text-xs mt-2 opacity-60 text-right">
+              {/* Timestamp can be added here if needed */}
+            </p>
+          </div>
         </div>
-
-        {/* Message Input */}
-        <div className="border-t border-gray-200 dark:border-gray-700 p-4">
-          <form onSubmit={handleSendMessage} className="flex gap-2">
-            <input
-              type="text"
-              value={message}
-              onChange={(e) => setMessage(e.target.value)}
-              placeholder="Type your message..."
-              className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-800 dark:text-white"
-            />
-            <button
-              type="submit"
-              className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors flex items-center gap-2"
-            >
-              <Send size={18} />
-              <span>Send</span>
-            </button>
-          </form>
-        </div>
-      </div>
+      ))}
     </div>
+
+    {/* Message Input */}
+    <div className="border-t border-neutral-200/50 dark:border-neutral-700/50 bg-white/70 dark:bg-neutral-800/70 backdrop-blur-sm p-4">
+      <form onSubmit={handleSendMessage} className="flex gap-3 max-w-4xl mx-auto">
+        <input
+          type="text"
+          value={message}
+          onChange={(e) => setMessage(e.target.value)}
+          placeholder="Message AI Assistant..."
+          className="flex-1 px-5 py-3 border border-neutral-200 dark:border-neutral-700 rounded-2xl focus:outline-none focus:ring-2 focus:ring-orange-500/50 bg-white dark:bg-neutral-800 text-neutral-800 dark:text-white placeholder-neutral-400 dark:placeholder-neutral-500 text-[15px] transition-all duration-200"
+        />
+        <button
+          type="submit"
+          disabled={isloading}
+          className="px-6 py-3 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white rounded-2xl transition-all duration-200 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm hover:shadow-md"
+        >
+          <Send size={18} />
+          <span className="font-medium">
+            {isloading ? 'Sending...' : 'Send'}
+          </span>
+        </button>
+      </form>
+    </div>
+  </div>
+</div>
   );
 };
 
