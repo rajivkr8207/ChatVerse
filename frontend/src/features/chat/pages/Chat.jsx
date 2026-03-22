@@ -54,7 +54,6 @@ const Chat = () => {
   useEffect(() => {
     socket.on("receive_message", (msg) => {
       const { aimesg, chat } = msg
-      console.log(aimesg, chat);
       if (aimesg.chat == chatIdRef.current) {
         dispatch(addnewMessage(aimesg))
       }

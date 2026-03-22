@@ -1,4 +1,5 @@
-import { addnewChat, addnewMessage, Setchatid, Setchatmessage, Setchats, setLoading } from "../chat.slice";
+import { useEffect, useState } from "react";
+import { addChatToend, addnewChat, addnewMessage, Setchatid, Setchatmessage, Setchats, setLoading } from "../chat.slice";
 import { DeleteChat, GetAllChat, GetChatById, Sendmessage } from "../services/chat.service"
 import { initializeSocketconnection } from "../services/chat.socket"
 import { useDispatch, useSelector } from 'react-redux';
@@ -8,6 +9,16 @@ const useChat = () => {
 
     const allchats = useSelector(state => state.chat.chats)
     const chatId = useSelector(state => state.chat.chatId)
+    const [page, setPage] = useState(1);
+    const [hasMore, setHasMore] = useState(true);
+    const [loadingMore, setLoadingMore] = useState(false);
+
+
+
+    useEffect(() => {
+        if (!hasMore) return
+        handleGetAllChat()
+    }, [page]);
 
 
 
@@ -30,12 +41,18 @@ const useChat = () => {
     }
 
     const handleGetAllChat = async () => {
+        if (!hasMore || loadingMore) return;
+        setLoadingMore(true);
         try {
-            const res = await GetAllChat()
-            dispatch(Setchats(res.data.chats))
-            console.log(res);
+            const res = await GetAllChat({ page })
+            dispatch(addChatToend(res.data.chats))
+            if (res.data.pagination.page == res.data.pagination.totalPages || res.data.pagination.page > res.data.pagination.totalPages) {
+                setHasMore(false)
+            }
         } catch (error) {
             console.error(error);
+        } finally {
+            setLoadingMore(false);
         }
     }
 
@@ -62,7 +79,7 @@ const useChat = () => {
     }
 
     return {
-        initializeSocketconnection, handleSendMessageApi, handleGetAllChat, handleDeleteChat, handleGetChatbyId
+        initializeSocketconnection, page, setPage, hasMore, loadingMore, handleSendMessageApi, handleGetAllChat, handleDeleteChat, handleGetChatbyId
     }
 }
 

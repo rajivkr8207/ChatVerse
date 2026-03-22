@@ -13,7 +13,7 @@ const config = {
     FRONTEND_URL: process.env.FRONTEND_URL,
     JWT_SECRET: process.env.JWT_SECRET,
     MISTRAL_API_KEY: process.env.MISTRAL_API_KEY,
-
+    TAVILY_KEY: process.env.TAVILY_KEY,
 }
 
 export default config

@@ -18,14 +18,15 @@ const Dashboard = () => {
   const dispatch = useDispatch()
   const location = useLocation();
   const pathname = location.pathname;
-  const chats = useSelector(state => state.chat.chats)
-  const chatID = useSelector(state => state.chat.chatId)
   const inputRef = useRef(null);
+
+  // const chats = useSelector(state => state.chat.chats)
+  const chatID = useSelector(state => state.chat.chatId)
   const userid = useSelector(state => state.auth.user)
   const messages = useSelector(state => state.chat.chatmessages)
   const isloading = useSelector(state => state.chat.isloading)
 
-  const { handleGetAllChat, handleDeleteChat, handleGetChatbyId } = useChat()
+  const { handleGetAllChat, setPage, handleDeleteChat, handleGetChatbyId, page, hasMore, loadingMore, } = useChat()
   const messagesEndRef = useRef(null);
 
   const chatIdRef = useRef(chatID);
@@ -34,9 +35,6 @@ const Dashboard = () => {
     chatIdRef.current = chatID;
   }, [chatID]);
 
-  useEffect(() => {
-    handleGetAllChat()
-  }, [])
 
   const toggleSidebar = () => setSidebarOpen(!sidebarOpen);
   const toggleDarkMode = () => setDarkMode(!darkMode);
@@ -110,7 +108,7 @@ const Dashboard = () => {
 
   return (
     <div className={`h-screen flex ${darkMode ? 'dark' : ''}`}>
-      <Sidebar sidebarOpen={sidebarOpen} darkMode={darkMode} startNewChat={startNewChat} chatHistory={chats} selectChat={selectChat} deleteChat={deleteChat} toggleDarkMode={toggleDarkMode} />
+      <Sidebar setPage={setPage} page={page} hasMore={hasMore} loadingMore={loadingMore} sidebarOpen={sidebarOpen} handleGetAllChat={handleGetAllChat} darkMode={darkMode} startNewChat={startNewChat} selectChat={selectChat} deleteChat={deleteChat} toggleDarkMode={toggleDarkMode} />
 
       <div className="flex-1 flex flex-col bg-gradient-to-br from-neutral-50 to-neutral-100 dark:from-neutral-900 dark:to-neutral-800">
         <header className="border-b border-neutral-200/50 dark:border-neutral-700/50 bg-white/70 dark:bg-neutral-800/70 backdrop-blur-sm p-4 flex items-center sticky top-0 z-10">
@@ -121,7 +119,7 @@ const Dashboard = () => {
             {sidebarOpen ? <X size={20} /> : <Menu size={20} />}
           </button>
           <h1 className="text-xl font-semibold bg-gradient-to-r from-orange-600 to-red-600 dark:from-orange-400 dark:to-red-400 bg-clip-text text-transparent">
-           ChatVerse
+            ChatVerse
           </h1>
         </header>
 

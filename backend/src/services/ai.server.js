@@ -1,19 +1,55 @@
 import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
 import config from "../config/config.js";
 import { ChatMistralAI, } from "@langchain/mistralai";
-import { AIMessage, HumanMessage, SystemMessage } from "langchain"
+import { AIMessage, HumanMessage,tool, SystemMessage, createAgent } from "langchain"
+import { tavily } from "@tavily/core";
+import * as z from "zod";
+const tvly = tavily({
+    apiKey: config.TAVILY_KEY,
+    maxResults: 3
+});
+export const webSearchTool = tool(
+    async ({ query }) => {
+        const res = await tvly.search(query);
+        const context = res.results
+            .slice(0, 3)
+            .map(r => r.content)
+            .join("\n");
+        return context;
+
+    },
+    {
+        name: "web_search",
+        description: "Search the internet for latest information",
+        schema: z.object({
+            query: z.string().describe("search query for web")
+        })
+    }
+);
+
+
 const mistralmodel = new ChatMistralAI({
     model: "mistral-small-latest",
     temperature: 0,
     apiKey: config.MISTRAL_API_KEY
 });
-const geminimodel = new ChatGoogleGenerativeAI({
-    model: "gemini-2.5-flash-lite",
-    apiKey: config.GOOGLE_API_KEY,
-});
 
-export async function ChatGeminimessage(messages) {
-    const res = await mistralmodel.invoke(messages.map(msg => {
+const agent = createAgent({
+    model:mistralmodel ,
+    tools: [webSearchTool]
+});
+let messages = [
+    {
+        role: "ai",
+        content:
+            "If you don't know the answer or the question requires latest information, use the web_search tool."
+    }
+]
+
+export async function ChatGeminimessage(msg) {
+    // messages.push(new HumanMessage(msg))
+
+    const res = await mistralmodel.invoke(msg.map(msg => {
         if (msg.role == "user") {
             return new HumanMessage(msg.content)
         } else {
@@ -26,6 +62,10 @@ export async function ChatGeminimessage(messages) {
 //     const res = await mistralmodel.invoke(messages);
 //     return res.text
 // }
+
+
+
+
 
 export async function GenrateMessageTilte(text) {
     const res = await mistralmodel.invoke([

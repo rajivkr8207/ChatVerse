@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useRef } from "react";
 import {
   Plus,
   Settings,
@@ -13,10 +13,13 @@ import {
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 
-export default function Sidebar({ sidebarOpen, darkMode, startNewChat, chatHistory, deleteChat, toggleDarkMode }) {
+export default function Sidebar({ page, setPage, hasMore, loadingMore, sidebarOpen, darkMode, handleGetAllChat, startNewChat, deleteChat, toggleDarkMode }) {
   const chatID = useSelector(state => state.chat.chatId)
+  const chats = useSelector(state => state.chat.chats)
+
   const navigate = useNavigate()
-  console.log(chatHistory);
+
+
   return (
     <div
       className={`${sidebarOpen ? 'w-72' : 'w-0'
@@ -35,7 +38,7 @@ export default function Sidebar({ sidebarOpen, darkMode, startNewChat, chatHisto
 
       {/* Chat History */}
       <div className="flex-1 overflow-y-auto px-3 py-4 space-y-1 custom-scrollbar">
-        {chatHistory.map((chat) => (
+        {chats.map((chat) => (
           <div
             key={chat.id}
             onClick={() => navigate(`/chat/${chat._id}`)}
@@ -66,6 +69,12 @@ export default function Sidebar({ sidebarOpen, darkMode, startNewChat, chatHisto
             </div>
           </div>
         ))}
+
+        {hasMore && <>
+          <button onClick={() => setPage(page + 1)}
+            className="mx-auto flex items-center justify-center gap-3 px-4 py-1 bg-gradient-to-r from-orange-600 to-orange-700 hover:from-orange-700 hover:to-orange-800 rounded-xl transition-all duration-200 border border-orange-500/20 shadow-lg shadow-orange-600/20 group"
+          >loadmore</button>
+        </>}
       </div>
 
       {/* Sidebar Footer */}

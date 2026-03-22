@@ -10,11 +10,18 @@ const chatSlice = createSlice({
         error: null,
     },
     reducers: {
-        addnewMessage: (state,action)=>{
+        addnewMessage: (state, action) => {
             state.chatmessages.push(action.payload)
         },
-        addnewChat: (state,action)=>{
+        addnewChat: (state, action) => {
             state.chats.unshift(action.payload)
+        },
+        addChatToend: (state, action) => {
+            const newChats = action.payload;
+            const unique = newChats.filter(
+                (newMsg) => !state.chats.some(c => c._id === newMsg._id)
+            );
+            state.chats.push(...unique);
         },
         Setchats: (state, action) => {
             state.chats = action.payload
@@ -34,5 +41,5 @@ const chatSlice = createSlice({
     }
 })
 
-export const { setError,addnewChat, setLoading,Setchatmessage,addnewMessage, Setchats, Setchatid } = chatSlice.actions
+export const { setError, addnewChat, addChatToend, setLoading, Setchatmessage, addnewMessage, Setchats, Setchatid } = chatSlice.actions
 export default chatSlice.reducer

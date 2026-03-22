@@ -10,8 +10,8 @@ export async function Sendmessage(data) {
 
 
 
-export async function GetAllChat() {
-    const res = await api.get('/chat')
+export async function GetAllChat({page}) {
+    const res = await api.get(`/chat?page=${page}`)
     return res.data
 }
 
