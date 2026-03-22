@@ -8,25 +8,27 @@ import { asyncHandler } from "../utils/async-handler.js";
 
 export const SendMessage = asyncHandler(async (req, res) => {
     const { message, chatid } = req.body;
-    const userid = req.user.id
-    const reschat  = await ChatModel.findById(chatid)
-    console.log(message, chatid, reschat);
-    let title = null
-    let chat = null
-    if (!chatid || reschat.title == "New chat") {
-        title = await GenrateMessageTilte(message)
-        if (reschat){
-            chat = await chatService.UpdateChat(chatid, title)
-        }else{
-            chat = await chatService.createChat(userid, title)
-        }
+    const userid = req.user.id;
+    let title = null;
+    let chat = null;
+    if (!chatid) {
+        title = await GenrateMessageTilte(message);
+        chat = await chatService.createChat(userid, title);
     }
-    const usermsg = await chatService.createMessage(chatid || chat._id, message, 'user')
-    const allmsg = await MessageModel.find({ chat: chatid })
-    const airesponse = await ChatGeminimessage(allmsg)
-    const aimesg = await chatService.createMessage(chatid || chat._id, airesponse, 'ai')
-    res.status(200).json(new ApiResponse(200, { usermsg,title, aimesg }, "Chat create Successfully"));
-})
+    const currentChatId = chatid || chat._id;
+
+    const usermsg = await chatService.createMessage(currentChatId, message, 'user');
+
+    const allmsg = await MessageModel.find({ chat: currentChatId });
+
+    const airesponse = await ChatGeminimessage(allmsg);
+
+    const aimesg = await chatService.createMessage(currentChatId, airesponse, 'ai');
+
+    res.status(200).json(
+        new ApiResponse(200, { usermsg, title, chat, aimesg }, "Chat create Successfully")
+    );
+});
 
 export const CreateNewChat = asyncHandler(async (req, res) => {
     const userid = req.user.id

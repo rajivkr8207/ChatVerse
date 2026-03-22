@@ -9,11 +9,6 @@ export async function Sendmessage(data) {
 }
 
 
-export async function CreateChat() {
-    const res = await api.post('/chat/new')
-    return res.data
-}
-
 
 export async function GetAllChat() {
     const res = await api.get('/chat')

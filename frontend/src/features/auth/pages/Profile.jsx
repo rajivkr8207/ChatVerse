@@ -7,11 +7,8 @@ export default function Profile() {
     const { userdata, handleProfile } = useAuth()
 
     useEffect(() => {
-        async function loadUser() {
-            await handleProfile()
-        }
-        loadUser()
-    }, [userdata])
+        handleProfile()
+    }, [])
 
 
     return (

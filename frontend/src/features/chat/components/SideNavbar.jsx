@@ -10,8 +10,13 @@ import {
   Trash2,
   Edit3
 } from "lucide-react";
+import { useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
 
 export default function Sidebar({ sidebarOpen, darkMode, startNewChat, chatHistory, selectChat, deleteChat, toggleDarkMode }) {
+  const chatID = useSelector(state => state.chat.chatId)
+  const navigate = useNavigate()
+  console.log(chatHistory);
   return (
     <div
       className={`${sidebarOpen ? 'w-72' : 'w-0'
@@ -33,18 +38,18 @@ export default function Sidebar({ sidebarOpen, darkMode, startNewChat, chatHisto
         {chatHistory.map((chat) => (
           <div
             key={chat.id}
-            onClick={() => selectChat(chat._id)}
-            className={`group relative flex items-center justify-between px-4 py-3.5 my-1 rounded-xl cursor-pointer transition-all duration-200 ${chat.active
-                ? 'bg-gradient-to-r from-orange-600/20 to-orange-600/5 border-l-4 border-l-orange-500'
-                : 'hover:bg-neutral-800/50 border-l-4 border-l-transparent hover:border-l-neutral-600'
+            onClick={() => navigate(`/chat/${chat._id}`)}
+            className={`group relative flex items-center justify-between px-4 py-3.5 my-1 rounded-xl cursor-pointer transition-all duration-200 ${chat._id == chatID
+              ? 'bg-gradient-to-r from-orange-600/20 to-orange-600/5 border-l-4 border-l-orange-500'
+              : 'hover:bg-neutral-800/50 border-l-4 border-l-transparent hover:border-l-neutral-600'
               }`}
           >
             <div className="flex items-center gap-3 truncate flex-1">
-              <div className={`p-1.5 rounded-lg ${chat.active ? 'bg-orange-500/20' : 'bg-neutral-800/50 group-hover:bg-neutral-700/50'
+              <div className={`p-1.5 rounded-lg ${chat._id == chatID ? 'bg-orange-500/20' : 'bg-neutral-800/50 group-hover:bg-neutral-700/50'
                 } transition-colors duration-200`}>
-                <MessageCircle size={16} className={chat.active ? 'text-orange-400' : 'text-neutral-400'} />
+                <MessageCircle size={16} className={chat._id == chatID ? 'text-orange-400' : 'text-neutral-400'} />
               </div>
-              <span className={`text-sm font-medium truncate ${chat.active ? 'text-white' : 'text-neutral-300'
+              <span className={`text-sm font-medium truncate ${chat._id == chatID ? 'text-white' : 'text-neutral-300'
                 }`}>
                 {chat.title}
               </span>
@@ -52,15 +57,6 @@ export default function Sidebar({ sidebarOpen, darkMode, startNewChat, chatHisto
 
             {/* Action Buttons */}
             <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-all duration-200 ml-2">
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  // Handle edit
-                }}
-                className="p-1.5 hover:bg-neutral-700/70 rounded-lg transition-colors duration-200 text-neutral-400 hover:text-neutral-200"
-              >
-                <Edit3 size={14} />
-              </button>
               <button
                 onClick={(e) => deleteChat(chat._id, e)}
                 className="p-1.5 hover:bg-red-500/20 rounded-lg transition-colors duration-200 text-neutral-400 hover:text-red-400"

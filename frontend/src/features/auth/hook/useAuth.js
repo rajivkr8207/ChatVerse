@@ -2,7 +2,7 @@ import { useDispatch } from "react-redux"
 import { setError, setLoading, setUser } from "../auth.slice"
 import { LoginUser, RegisterUser, UserChangePassowrd, UserGetMe, UserProfie } from "../services/auth.service"
 import { toast } from "react-toastify"
-import {  useState } from "react"
+import { useState } from "react"
 
 
 
@@ -75,7 +75,7 @@ const useAuth = () => {
 
 
 
-    return { handleRegister, handleLogin, handleGetme, handleProfile, handleChangePassword,userdata ,setUserdata}
+    return { handleRegister, handleLogin, handleGetme, handleProfile, handleChangePassword, userdata, setUserdata }
 }
 
 export default useAuth

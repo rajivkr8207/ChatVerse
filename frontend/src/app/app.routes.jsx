@@ -3,15 +3,24 @@ import Login from "../features/auth/pages/Login"
 import Register from "../features/auth/pages/Register"
 import Profile from "../features/auth/pages/Profile"
 import ChangePassword from "../features/auth/pages/ChangePassword"
-import Home from "../features/chat/pages/Home"
 import Protected from "../features/auth/components/protected"
+import Dashboard from "../features/chat/pages/Dashboard"
+import Chat from "../features/chat/pages/Chat"
 
 export const Router = createBrowserRouter([
     {
         path: "/",
         element: <Protected>
-            <Home />
-        </Protected>
+            <Dashboard />
+        </Protected>,
+        children: [
+            {
+                path: "chat/:chatid",
+                element: <Protected>
+                    <Chat />
+                </Protected>
+            }
+        ]
     },
     {
         path: "/login",
