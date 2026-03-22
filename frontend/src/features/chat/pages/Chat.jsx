@@ -1,21 +1,17 @@
-import React, { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   MessageCircle,
   Send,
-  Menu,
-  X,
 } from 'lucide-react';
 import remarkGfm from 'remark-gfm'
 import ReactMarkdown from 'react-markdown'
-import Sidebar from '../components/SideNavbar';
 import useChat from '../hook/useChat';
 import { useDispatch, useSelector } from 'react-redux';
 import { addnewChat, addnewMessage, Setchatid, Setchatmessage } from '../chat.slice';
 import socket from '../../../lib/socket/socket';
 import TypingIndicator from '../components/TypingIndicator';
-// import TypingText from '../../../animation/TypingText';
 import { motion } from "framer-motion";
-import { useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 const Chat = () => {
 
   const { chatid } = useParams();
@@ -29,15 +25,9 @@ const Chat = () => {
 
 
 
-  const inputRef = useRef(null);
   const dispatch = useDispatch()
-  const chats = useSelector(state => state.chat.chats)
-  const userid = useSelector(state => state.auth.user)
   const [typing, setTyping] = useState(false);
   const chatID = useSelector(state => state.chat.chatId)
-  const allchatchatID = useSelector(state => state.chat)
-
-  const isloading = useSelector(state => state.chat.isloading)
 
   const messagesEndRef = useRef(null);
   const scrollContainerRef = useRef(null);
@@ -56,23 +46,22 @@ const Chat = () => {
   useEffect(() => {
     handleGetAllChat()
   }, [])
+  const navigate = useNavigate()
 
-  // const toggleSidebar = () => setSidebarOpen(!sidebarOpen);
-  // const toggleDarkMode = () => setDarkMode(!darkMode);
-
-  // Scroll to bottom function
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "auto" });
   };
   useEffect(() => {
     socket.on("receive_message", (msg) => {
       const { aimesg, chat } = msg
+      console.log(aimesg, chat);
       if (aimesg.chat == chatIdRef.current) {
         dispatch(addnewMessage(aimesg))
       }
       else {
         dispatch(Setchatid(aimesg.chat))
         dispatch(addnewChat(chat))
+        navigate(`/chat/${aimesg.chat}`)
         dispatch(addnewMessage(aimesg))
       }
     });
@@ -90,53 +79,6 @@ const Chat = () => {
     };
   }, []);
 
-  const handleSendMessage = (e) => {
-    e.preventDefault();
-    const value = inputRef.current.value;
-    if (!value.trim()) return;
-    console.log('chat data hai ', allchatchatID);
-    let data
-    if (chatID) {
-      data = {
-        message: value,
-        chatid: chatID,
-        userid: userid.id
-      }
-    } else {
-      data = {
-        message: value,
-        userid: userid.id
-      }
-    }
-
-    dispatch(addnewMessage({
-      _id: "",
-      chat: chatID || '',
-      content: value,
-      role: "user"
-    }))
-
-    setTimeout(scrollToBottom, 100);
-
-    socket.emit("send_message", data);
-    inputRef.current.value = "";
-  };
-
-  const startNewChat = () => {
-    dispatch(Setchatmessage([]))
-    dispatch(Setchatid(null))
-  }
-
-  const selectChat = (chatId) => {
-    dispatch(Setchatid(chatId))
-    handleGetChatbyId(chatId)
-  };
-
-  const deleteChat = (chatId, e) => {
-    e.stopPropagation();
-    handleDeleteChat(chatId)
-  };
-
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
@@ -145,7 +87,6 @@ const Chat = () => {
 
   return (
     <>
-      {/* Scrollable container with ref */}
       <div
         ref={scrollContainerRef}
         className="flex-1 overflow-y-auto p-6 space-y-6 scroll-smooth"
@@ -173,7 +114,10 @@ const Chat = () => {
               {msg?.role === 'user' ? (
                 <p className="text-[15px] leading-relaxed font-medium">{msg?.content}</p>
               ) : (
-                <motion.div className="prose prose-sm dark:prose-invert max-w-none">
+                <motion.div initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.3 }}
+                  className="prose prose-sm dark:prose-invert max-w-none">
                   <ReactMarkdown
                     components={{
                       p: ({ children }) => <p className='mb-3 last:mb-0 text-[15px] leading-relaxed'>{children}</p>,
@@ -203,27 +147,6 @@ const Chat = () => {
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Message Input */}
-      <div className="border-t border-neutral-200/50 dark:border-neutral-700/50 bg-white/70 dark:bg-neutral-800/70 backdrop-blur-sm p-4">
-        <form onSubmit={handleSendMessage} className="flex gap-3 max-w-4xl mx-auto">
-          <input
-            type="text"
-            ref={inputRef}
-            placeholder="Message AI Assistant..."
-            className="flex-1 px-5 py-3 border border-neutral-200 dark:border-neutral-700 rounded-2xl focus:outline-none focus:ring-2 focus:ring-orange-500/50 bg-white dark:bg-neutral-800 text-neutral-800 dark:text-white placeholder-neutral-400 dark:placeholder-neutral-500 text-[15px] transition-all duration-200"
-          />
-          <button
-            type="submit"
-            disabled={isloading}
-            className="px-6 py-3 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white rounded-2xl transition-all duration-200 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm hover:shadow-md"
-          >
-            <Send size={18} />
-            <span className="font-medium">
-              {isloading ? 'Sending...' : 'Send'}
-            </span>
-          </button>
-        </form>
-      </div>
     </>
   );
 };

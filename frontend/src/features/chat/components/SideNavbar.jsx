@@ -13,7 +13,7 @@ import {
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 
-export default function Sidebar({ sidebarOpen, darkMode, startNewChat, chatHistory, selectChat, deleteChat, toggleDarkMode }) {
+export default function Sidebar({ sidebarOpen, darkMode, startNewChat, chatHistory, deleteChat, toggleDarkMode }) {
   const chatID = useSelector(state => state.chat.chatId)
   const navigate = useNavigate()
   console.log(chatHistory);

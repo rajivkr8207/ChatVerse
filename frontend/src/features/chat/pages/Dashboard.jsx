@@ -1,41 +1,32 @@
 import React, { useEffect, useRef, useState } from 'react';
 import {
-  MessageCircle,
-  Send,
   Menu,
+  Send,
   X,
 } from 'lucide-react';
-import remarkGfm from 'remark-gfm'
-import ReactMarkdown from 'react-markdown'
 import Sidebar from '../components/SideNavbar';
 import useChat from '../hook/useChat';
 import { useDispatch, useSelector } from 'react-redux';
 import { addnewChat, addnewMessage, Setchatid, Setchatmessage } from '../chat.slice';
+import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import socket from '../../../lib/socket/socket';
-import TypingIndicator from '../components/TypingIndicator';
-// import TypingText from '../../../animation/TypingText';
-import { motion } from "framer-motion";
+
 const Dashboard = () => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [darkMode, setDarkMode] = useState(false);
-
-  const inputRef = useRef(null);
+  const navigate = useNavigate()
   const dispatch = useDispatch()
+  const location = useLocation();
+  const pathname = location.pathname;
   const chats = useSelector(state => state.chat.chats)
-  const userid = useSelector(state => state.auth.user)
-  const [typing, setTyping] = useState(false);
   const chatID = useSelector(state => state.chat.chatId)
-  const allchatchatID = useSelector(state => state.chat)
-
+  const inputRef = useRef(null);
+  const userid = useSelector(state => state.auth.user)
+  const messages = useSelector(state => state.chat.chatmessages)
   const isloading = useSelector(state => state.chat.isloading)
 
-  const messagesEndRef = useRef(null);
-  const scrollContainerRef = useRef(null);
-
-  const messages = useSelector(state => state.chat.chatmessages)
-
   const { handleGetAllChat, handleDeleteChat, handleGetChatbyId } = useChat()
-
+  const messagesEndRef = useRef(null);
 
   const chatIdRef = useRef(chatID);
 
@@ -49,72 +40,55 @@ const Dashboard = () => {
 
   const toggleSidebar = () => setSidebarOpen(!sidebarOpen);
   const toggleDarkMode = () => setDarkMode(!darkMode);
-
-  // Scroll to bottom function
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "auto" });
   };
-  useEffect(() => {
-    socket.on("receive_message", (msg) => {
-      const { aimesg, chat } = msg
-      if (aimesg.chat == chatIdRef.current) {
-        dispatch(addnewMessage(aimesg))
-      }
-      else {
-        dispatch(Setchatid(aimesg.chat))
-        dispatch(addnewChat(chat))
-        dispatch(addnewMessage(aimesg))
-      }
-    });
-    socket.on("typing", (status) => {
-      setTyping(status);
-    });
-    socket.on("error", (err) => {
-      console.error(err);
-    });
-
-    return () => {
-      socket.off("receive_message");
-      socket.off("error");
-      socket.off("typing");
-    };
-  }, []);
 
   const handleSendMessage = (e) => {
     e.preventDefault();
     const value = inputRef.current.value;
     if (!value.trim()) return;
-    console.log('chat data hai ', allchatchatID);
-    let data
-    if (chatID) {
-      data = {
-        message: value,
-        chatid: chatID,
-        userid: userid.id
-      }
-    } else {
-      data = {
-        message: value,
-        userid: userid.id
-      }
-    }
 
+    const isNewChat = !chatID;
+
+    const data = {
+      message: value,
+      chatid: chatID || null,
+      userid: userid.id
+    };
+
+    // optimistic UI
     dispatch(addnewMessage({
-      _id: "",
+      _id: Date.now(),
       chat: chatID || '',
       content: value,
       role: "user"
-    }))
+    }));
 
-    setTimeout(scrollToBottom, 100);
+    socket.emit("send_message", data, (response) => {
+      // 👇 IMPORTANT: backend should send ack
+      const { chatId, chat, aimesg } = response;
 
-    socket.emit("send_message", data);
+      if (isNewChat && chatId) {
+        dispatch(Setchatid(chatId));
+        dispatch(addnewChat(chat));
+        navigate(`/chat/${chatId}`);  // 🔥 MAIN FIX
+      }
+
+      if (aimesg) {
+        dispatch(addnewMessage(aimesg));
+      }
+    });
+
     inputRef.current.value = "";
   };
-
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
   const startNewChat = () => {
     dispatch(Setchatmessage([]))
     dispatch(Setchatid(null))
+    navigate('/')
   }
 
   const selectChat = (chatId) => {
@@ -124,13 +98,14 @@ const Dashboard = () => {
 
   const deleteChat = (chatId, e) => {
     e.stopPropagation();
+    const path = (pathname.split('/')[2]);
+    if (path == chatId) {
+      dispatch(Setchatmessage([]))
+      dispatch(Setchatid(null))
+      navigate('/')
+    }
     handleDeleteChat(chatId)
   };
-
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
-
 
 
   return (
@@ -146,70 +121,13 @@ const Dashboard = () => {
             {sidebarOpen ? <X size={20} /> : <Menu size={20} />}
           </button>
           <h1 className="text-xl font-semibold bg-gradient-to-r from-orange-600 to-red-600 dark:from-orange-400 dark:to-red-400 bg-clip-text text-transparent">
-            AI Assistant
+           ChatVerse
           </h1>
         </header>
 
-        {/* Scrollable container with ref */}
-        <div
-          ref={scrollContainerRef}
-          className="flex-1 overflow-y-auto p-6 space-y-6 scroll-smooth"
-        >
-          {messages?.map((msg) => (
-            <div
-              key={msg?.id || `${msg?.role}-${msg?.content}-${Date.now()}`}
-              className={`flex ${msg?.role === 'user' ? 'justify-end' : 'justify-start'} animate-fadeIn`}
-            >
-              <div
-                className={`max-w-[80%] lg:max-w-[70%] rounded-2xl p-4 shadow-sm ${msg?.role === 'user'
-                  ? 'bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-br-none'
-                  : 'bg-white dark:bg-neutral-800 text-neutral-800 dark:text-neutral-100 rounded-bl-none border border-neutral-200/50 dark:border-neutral-700/50'
-                  }`}
-              >
-                {msg?.role === 'ai' && (
-                  <div className="flex items-center gap-2 mb-2">
-                    <div className="p-1 bg-orange-100 dark:bg-orange-900/30 rounded-lg">
-                      <MessageCircle size={14} className="text-orange-600 dark:text-orange-400" />
-                    </div>
-                    <span className="text-xs font-medium text-orange-600 dark:text-orange-400">AI Assistant</span>
-                  </div>
-                )}
+        <Outlet />
 
-                {msg?.role === 'user' ? (
-                  <p className="text-[15px] leading-relaxed font-medium">{msg?.content}</p>
-                ) : (
-                  <motion.div className="prose prose-sm dark:prose-invert max-w-none">
-                    <ReactMarkdown
-                      components={{
-                        p: ({ children }) => <p className='mb-3 last:mb-0 text-[15px] leading-relaxed'>{children}</p>,
-                        ul: ({ children }) => <ul className='mb-3 space-y-1 list-disc pl-5'>{children}</ul>,
-                        ol: ({ children }) => <ol className='mb-3 space-y-1 list-decimal pl-5'>{children}</ol>,
-                        li: ({ children }) => <li className='text-[15px] leading-relaxed'>{children}</li>,
-                        code: ({ children }) => <code className='rounded bg-neutral-100 dark:bg-neutral-700 px-1.5 py-0.5 font-mono text-sm text-pink-600 dark:text-pink-400'>{children}</code>,
-                        pre: ({ children }) => <pre className='mb-3 overflow-x-auto rounded-xl bg-neutral-900 dark:bg-neutral-950 p-4 font-mono text-sm text-neutral-100'>{children}</pre>
-                      }}
-                      remarkPlugins={[remarkGfm]}
-                    >
-                      {msg?.content}
-                    </ReactMarkdown>
-                  </motion.div>
-                )}
-                <p className="text-xs mt-2 opacity-60 text-right">
-                  {/* Timestamp can be added here if needed */}
-                </p>
-              </div>
-            </div>
-          ))}
-
-          {typing && (
-            <TypingIndicator />
-          )}
-
-          <div ref={messagesEndRef} />
-        </div>
-
-        {/* Message Input */}
-        <div className="border-t border-neutral-200/50 dark:border-neutral-700/50 bg-white/70 dark:bg-neutral-800/70 backdrop-blur-sm p-4">
+        <div className="my-auto  rounded-lg dark:border-neutral-700/50  backdrop-blur-sm p-4">
           <form onSubmit={handleSendMessage} className="flex gap-3 max-w-4xl mx-auto">
             <input
               type="text"

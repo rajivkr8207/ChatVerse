@@ -56,25 +56,10 @@ const useChat = () => {
             })
             await DeleteChat(chatid)
             dispatch(Setchats(fileter))
-            dispatch(Setchatmessage([]))
-            dispatch(Setchatid(null))
-
         } catch (error) {
             console.error(error);
         }
     }
-
-    // const handleChangeChatTitle = (newtitle, chatid) => {
-    //     const updatedChats = allchats.map((item) => {
-    //         if (item._id === chatid) {
-    //             return { ...item, title: newtitle }
-    //         }
-    //         return item
-    //     })
-
-    //     dispatch(Setchats(updatedChats))
-    //     return updatedChats
-    // }
 
     return {
         initializeSocketconnection, handleSendMessageApi, handleGetAllChat, handleDeleteChat, handleGetChatbyId

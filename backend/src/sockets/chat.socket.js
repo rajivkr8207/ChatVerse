@@ -3,7 +3,7 @@ import { ChatGeminimessage, GenrateMessageTilte } from "../services/ai.server.js
 import { chatService } from "../services/chat.service.js";
 
 export const handleSocketChat = (socket) => {
-    socket.on("send_message", async (data) => {
+    socket.on("send_message", async (data,callback) => {
         try {
             const { message, chatid, userid } = data;
             let title = null;
@@ -22,8 +22,16 @@ export const handleSocketChat = (socket) => {
                 "user"
             );
 
-            const allmsg = await MessageModel.find({ chat: currentChatId });
+             // 🟢 🔥 IMPORTANT: send immediate response to frontend
+            if (callback) {
+                callback({
+                    chatId: currentChatId,
+                    chat
+                });
+            }
+
             socket.emit("typing", true);
+            const allmsg = await MessageModel.find({ chat: currentChatId });
             const airesponse = await ChatGeminimessage(allmsg);
 
             const aimesg = await chatService.createMessage(
