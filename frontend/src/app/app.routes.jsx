@@ -8,6 +8,7 @@ import Dashboard from "../features/chat/pages/Dashboard"
 import Chat from "../features/chat/pages/Chat"
 import VerifyEmail from "../features/auth/pages/VerifyEmail"
 import ResendVerifyMail from "../features/auth/pages/ResendVerifyMail"
+import SharingChat from "../features/chat/pages/SharingChat"
 
 export const Router = createBrowserRouter([
     {
@@ -20,6 +21,12 @@ export const Router = createBrowserRouter([
                 path: "chat/:chatid",
                 element: <Protected>
                     <Chat />
+                </Protected>
+            },
+            {
+                path: "share/:chatid",
+                element: <Protected>
+                    <SharingChat />
                 </Protected>
             },
             {

@@ -2,16 +2,18 @@ import React, { useEffect, useRef, useState } from 'react';
 import {
   Menu,
   Send,
+  Share,
   X,
 } from 'lucide-react';
 import Sidebar from '../components/SideNavbar';
 import useChat from '../hook/useChat';
 import { useDispatch, useSelector } from 'react-redux';
-import { addnewChat, addnewMessage, Setchatid, Setchatmessage, SetTyping } from '../chat.slice';
+import { addnewChat, addnewMessage, Setchatid, Setchatmessage, SetTyping, SetSharing } from '../chat.slice';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import socket from '../../../lib/socket/socket';
 import ChatSearchLanding from '../components/ChatSearchLanding';
-
+import Button from '../../../components/common/Button';
+import ShareChat from '../components/ShareChat'
 const Dashboard = () => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [darkMode, setDarkMode] = useState(false);
@@ -19,12 +21,16 @@ const Dashboard = () => {
   const dispatch = useDispatch()
   const location = useLocation();
   const pathname = location.pathname;
+    const pathid = `${window.location.pathname.split('/')[1]}`
+
   const inputRef = useRef(null);
   // const chats = useSelector(state => state.chat.chats)
   const chatID = useSelector(state => state.chat.chatId)
   const userid = useSelector(state => state.auth.user)
   const messages = useSelector(state => state.chat.chatmessages)
   const typing = useSelector(state => state.chat.typing)
+  const sharing = useSelector(state => state.chat.sharing)
+
 
   const { handleGetAllChat, setPage, handleDeleteChat, handleGetChatbyId, page, hasMore, loadingMore, } = useChat()
   const messagesEndRef = useRef(null);
@@ -117,17 +123,27 @@ const Dashboard = () => {
     <div className={`h-screen flex ${darkMode ? 'dark' : ''}`}>
       <Sidebar toggleSidebar={toggleSidebar} setPage={setPage} page={page} hasMore={hasMore} loadingMore={loadingMore} sidebarOpen={sidebarOpen} handleGetAllChat={handleGetAllChat} darkMode={darkMode} startNewChat={startNewChat} selectChat={selectChat} deleteChat={deleteChat} toggleDarkMode={toggleDarkMode} />
       {searching && <ChatSearchLanding />}
+      {sharing && <ShareChat />}
       <div className="flex-1 flex flex-col bg-gradient-to-br from-neutral-50 to-neutral-100 dark:from-neutral-900 dark:to-neutral-800">
-        <header className="border-b border-neutral-200/50 dark:border-neutral-700/50 bg-white/70 dark:bg-neutral-800/70 backdrop-blur-sm p-4 flex items-center sticky top-0 z-10">
-          <button
-            onClick={toggleSidebar}
-            className="p-2 hover:bg-neutral-100 dark:hover:bg-neutral-700 rounded-xl transition-all duration-200 mr-4 text-neutral-600 dark:text-neutral-300 hover:text-neutral-900 dark:hover:text-white"
-          >
-            {!sidebarOpen && <Menu size={20} />}
-          </button>
-          <h1 className="text-xl font-semibold bg-gradient-to-r from-orange-600 to-red-600 dark:from-orange-400 dark:to-red-400 bg-clip-text text-transparent">
-            ChatVerse
-          </h1>
+        <header className="border-b border-neutral-200/50 dark:border-neutral-700/50 bg-white/70 dark:bg-neutral-800/70 backdrop-blur-sm p-4 flex justify-between items-center sticky top-0 z-10">
+          <div className="flex justify-center items-center">
+            <button
+              onClick={toggleSidebar}
+              className="p-2 hover:bg-neutral-100 dark:hover:bg-neutral-700 rounded-xl transition-all duration-200 mr-4 text-neutral-600 dark:text-neutral-300 hover:text-neutral-900 dark:hover:text-white"
+            >
+              {!sidebarOpen && <Menu size={20} />}
+            </button>
+            <p id='Fontlogo' className="text-2xl font-semibold bg-gradient-to-r from-orange-600 capitalize to-red-600 dark:from-orange-400 dark:to-red-400 bg-clip-text text-transparent">
+              <span className='chatlogo'>chat</span><span className='verse'>verse</span>
+            </p>
+          </div>
+          {chatID && pathid == 'chat' &&
+            <div>
+              <Button onClick={() => dispatch(SetSharing(true))} size="sm" className='text-white flex gap-3 justify-center items-center'>
+                <Share /> Share
+              </Button>
+            </div>
+          }
         </header>
 
         <Outlet />
@@ -168,7 +184,7 @@ const Dashboard = () => {
               ].map((item, i) => (
                 <button
                   key={i}
-                  onClick={(e)=>handleSendMessage(e, item)}
+                  onClick={(e) => handleSendMessage(e, item)}
                   className="px-4 py-2 rounded-full bg-white/5 border text-white border-white/10 text-sm hover:bg-white/10 transition"
                 >
                   {item}

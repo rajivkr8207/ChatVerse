@@ -11,14 +11,15 @@ import socket from '../../../lib/socket/socket';
 import TypingIndicator from '../components/TypingIndicator';
 import { motion } from "framer-motion";
 import { useNavigate, useParams } from 'react-router-dom';
-const Chat = () => {
+const SharingChat = () => {
 
   const { chatid } = useParams();
+  const { handleGetAllChat, handleGetShareChat } = useChat()
 
   useEffect(() => {
     if (chatid) {
       dispatch(Setchatid(chatid));
-      handleGetChatbyId(chatid);
+      handleGetShareChat(chatid);
     }
   }, [chatid]);
 
@@ -33,7 +34,6 @@ const Chat = () => {
 
   const messages = useSelector(state => state.chat.chatmessages)
 
-  const { handleGetAllChat, handleGetChatbyId } = useChat()
 
 
   const chatIdRef = useRef(chatID);
@@ -146,4 +146,4 @@ const Chat = () => {
   );
 };
 
-export default Chat;
+export default SharingChat;

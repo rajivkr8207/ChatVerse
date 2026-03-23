@@ -74,9 +74,8 @@ export const GetChatById = asyncHandler(async (req, res) => {
     }
 
     const isOwner = chat.user.toString() === userid;
-    const isPublic = chat.ispublic;
 
-    if (!isOwner && !isPublic) {
+    if (!isOwner) {
         throw new ApiError(403, "You are not allowed to access this chat");
     }
 
@@ -88,7 +87,23 @@ export const GetChatById = asyncHandler(async (req, res) => {
         new ApiResponse(200, { chat, messages }, "Chat fetched successfully")
     );
 });
+export const getPublicChat = asyncHandler(async (req, res) => {
+    const { shareId } = req.params;
 
+    const chat = await ChatModel.findOne({
+        shareId,
+        isPublic: true
+    }).select("messages createdAt");
+
+    if (!chat) {
+        return res.status(404).json({ msg: "Chat not found or private" });
+    }
+    const messages = await MessageModel.find({
+        chat: chat._id
+    }).sort({ createdAt: 1 });
+    return res.status(200).json(new ApiResponse(200, messages));
+
+})
 export const searchChats = asyncHandler(async (req, res) => {
     const { q } = req.query;
     const userId = req.user.id;

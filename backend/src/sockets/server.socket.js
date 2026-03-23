@@ -1,12 +1,13 @@
 import { Server } from 'socket.io'
 import { handleSocketChat } from './chat.socket.js';
+import config from '../config/config.js';
 
 
 let io
 export function initSocket(httpServer) {
     io = new Server(httpServer, {
         cors: {
-            origin: "http://localhost:5173",
+            origin: config.FRONTEND_URL,
             credentials: true
         }
     })

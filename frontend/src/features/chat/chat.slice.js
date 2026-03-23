@@ -9,7 +9,8 @@ const chatSlice = createSlice({
         isloading: false,
         error: null,
         typing: false,
-        searching: false
+        searching: false,
+        sharing: false,
     },
     reducers: {
         addnewMessage: (state, action) => {
@@ -40,6 +41,9 @@ const chatSlice = createSlice({
         SetSearching: (state, action) => {
             state.searching = action.payload
         },
+        SetSharing: (state, action) => {
+            state.sharing = action.payload
+        },
         setLoading: (state, action) => {
             state.isloading = action.payload
         },
@@ -49,5 +53,5 @@ const chatSlice = createSlice({
     }
 })
 
-export const { setError, SetTyping, SetSearching, addnewChat, addChatToend, setLoading, Setchatmessage, addnewMessage, Setchats, Setchatid } = chatSlice.actions
+export const { setError, SetTyping,SetSharing, SetSearching, addnewChat, addChatToend, setLoading, Setchatmessage, addnewMessage, Setchats, Setchatid } = chatSlice.actions
 export default chatSlice.reducer

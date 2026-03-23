@@ -1,6 +1,6 @@
 import express from 'express'
 import { verifyUser } from '../middleware/auth.middleware.js'
-import { ChatDeleteById, CreateNewChat, GetAllchat, GetChatById, makeChatPublic, searchChats, SendMessage } from '../controllers/chat.controller.js'
+import { ChatDeleteById, CreateNewChat, GetAllchat, GetChatById, getPublicChat, makeChatPublic, searchChats, SendMessage } from '../controllers/chat.controller.js'
 
 const ChatRouter = express.Router()
 
@@ -12,5 +12,5 @@ ChatRouter.get('/:chatid', verifyUser, GetChatById)
 ChatRouter.delete('/:chatid', verifyUser, ChatDeleteById)
 ChatRouter.post('/new', verifyUser, CreateNewChat)
 ChatRouter.post("/share/:chatId", verifyUser, makeChatPublic);
-
+ChatRouter.get("/share/:shareId",verifyUser, getPublicChat)
 export default ChatRouter

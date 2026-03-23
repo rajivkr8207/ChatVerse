@@ -64,7 +64,7 @@ export const loginController = asyncHandler(async (req, res) => {
 
     res.cookie('tokenai', token)
 
-    res.status(200).json(new ApiResponse(200, payload,"Login successful"));
+    res.status(200).json(new ApiResponse(200, payload, "Login successful"));
 
 }
 )
@@ -118,7 +118,7 @@ export const getUserProfile = asyncHandler(async (req, res) => {
         throw new ApiError(404, "User not found");
     }
     const userdata = {
-        fullName : user.fullName,
+        fullName: user.fullName,
         email: user.email,
         username: user.username,
         _id: user._id,

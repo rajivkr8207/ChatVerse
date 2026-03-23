@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
-import { addChatToend, addnewChat, addnewMessage, Setchatid, Setchatmessage, Setchats, setLoading } from "../chat.slice";
-import { DeleteChat, GetAllChat, GetChatById, SearchChat, Sendmessage, ShareChat } from "../services/chat.service"
+import { addChatToend, addnewChat, addnewMessage, Setchatid, Setchatmessage, Setchats, setError, setLoading } from "../chat.slice";
+import { DeleteChat, GetAllChat, GetChatById, GetShareChatApi, SearchChat, Sendmessage, ShareChatApi } from "../services/chat.service"
 import { initializeSocketconnection } from "../services/chat.socket"
 import { useDispatch, useSelector } from 'react-redux';
-
+import { toast } from 'react-toastify'
+import { useNavigate } from "react-router-dom";
 const useChat = () => {
     const dispatch = useDispatch()
 
@@ -13,7 +14,7 @@ const useChat = () => {
     const [hasMore, setHasMore] = useState(true);
     const [loadingMore, setLoadingMore] = useState(false);
 
-
+    const navigate = useNavigate()
 
     useEffect(() => {
         if (!hasMore) return
@@ -60,7 +61,14 @@ const useChat = () => {
             const res = await GetChatById(chatid)
             dispatch(Setchatmessage(res.data.messages))
         } catch (error) {
-            console.error(error);
+            const message =
+                error?.response?.data?.message ||
+                error.message ||
+                "Something went wrong";
+
+            toast.error(message);
+            dispatch(setError(message));
+            navigate('/')
         }
     }
 
@@ -78,14 +86,14 @@ const useChat = () => {
 
     const handleShareChat = async (chatid) => {
         try {
-            const res = await ShareChat(chatid)
+            const res = await ShareChatApi(chatid)
             return res
         } catch (error) {
             console.error(error);
         }
     }
 
-      const handleSearchChat = async (query) => {
+    const handleSearchChat = async (query) => {
         try {
             const res = await SearchChat(query)
             return res
@@ -93,8 +101,26 @@ const useChat = () => {
             console.error(error);
         }
     }
+
+
+    const handleGetShareChat = async (shareid) => {
+        try {
+            const res = await GetShareChatApi(shareid)
+            dispatch(Setchatmessage(res.data))
+            return res
+        } catch (error) {
+            const message =
+                error?.response?.data?.message ||
+                error.message ||
+                "Something went wrong";
+
+            toast.error(message);
+            dispatch(setError(message));
+            navigate('/')
+        }
+    }
     return {
-        initializeSocketconnection,handleSearchChat, handleShareChat, page, setPage, hasMore, loadingMore, handleSendMessageApi, handleGetAllChat, handleDeleteChat, handleGetChatbyId
+        initializeSocketconnection, handleSearchChat, handleGetShareChat, handleShareChat, page, setPage, hasMore, loadingMore, handleSendMessageApi, handleGetAllChat, handleDeleteChat, handleGetChatbyId
     }
 }
 
