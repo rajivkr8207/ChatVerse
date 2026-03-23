@@ -1,7 +1,7 @@
 import axios from 'axios'
 
 export const api = axios.create({
-  baseURL: 'http://localhost:8000/api/',
+  baseURL: import.meta.env.VITE_BACKEND_URL,
   withCredentials: true,
   timeout: 90000,
   headers: {'X-Custom-Header': 'foobar'}

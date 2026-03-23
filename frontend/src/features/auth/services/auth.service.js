@@ -13,14 +13,21 @@ export async function LoginUser({ identifier, password }) {
     return res.data
 }
 
-export async function VerifyEmailSendAgain(email) {
-    const res =  await api.patch(`/auth/send/mail/${email}`)
+
+export async function VerifyEmailApi(token) {
+    const res = await api.get(`/auth/verify/${token}`)
     return res.data
 }
 
 
-export async function UserChangePassowrd({oldPassword, newPassword}) {
-    const res =  await api.patch(`/auth/change-password`,{oldPassword, newPassword})
+export async function VerifyEmailSendAgain(email) {
+    const res = await api.patch(`/auth/send/mail/${email}`)
+    return res.data
+}
+
+
+export async function UserChangePassowrd({ oldPassword, newPassword }) {
+    const res = await api.patch(`/auth/change-password`, { oldPassword, newPassword })
     return res.data
 }
 

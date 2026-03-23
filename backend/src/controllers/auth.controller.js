@@ -23,7 +23,7 @@ export const registerUser = asyncHandler(async (req, res) => {
         verificationToken: token,
         verificationTokenExpire: tokenExpire
     });
-    const verifyLink = `${config.FRONTEND_URL}/api/auth/verify/${token}`;
+    const verifyLink = `${config.FRONTEND_URL}/verify/${token}`;
     sendVerificationEmail(email, fullName, verifyLink)
     res.status(201).json(new ApiResponse(201, user, "User Register Successfully"));
 })
@@ -80,6 +80,10 @@ export const SendAgainVerifyMail = asyncHandler(async (req, res) => {
     }
     const { token, tokenExpire } = generateVerificationToken();
     await authService.setVerificationToken(existingUser._id, token, tokenExpire)
+    const verifyLink = `${config.FRONTEND_URL}/verify/${token}`;
+
+    sendVerificationEmail(email, existingUser.fullName, verifyLink)
+
     res.status(200).json(new ApiResponse(200, { message: "verification mail send succssfully" }));
 })
 

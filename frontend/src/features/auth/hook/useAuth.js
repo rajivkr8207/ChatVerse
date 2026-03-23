@@ -1,6 +1,6 @@
 import { useDispatch } from "react-redux"
 import { setError, setLoading, setUser } from "../auth.slice"
-import { LoginUser, RegisterUser, UserChangePassowrd, UserGetMe, UserProfie } from "../services/auth.service"
+import { LoginUser, RegisterUser, UserChangePassowrd, UserGetMe, Userlogout, UserProfie, VerifyEmailSendAgain } from "../services/auth.service"
 import { toast } from "react-toastify"
 import { useState } from "react"
 
@@ -16,9 +16,17 @@ const useAuth = () => {
         try {
             dispatch(setLoading(true))
             const res = await RegisterUser({ fullName, username, email, password })
+            toast.success('Register successfully verify your mail')
             console.log(res);
+            return res
         } catch (error) {
-            dispatch(setError(error.response?.data?.message || "Registeration failed"))
+            const message =
+                error?.response?.data?.message ||
+                error.message ||
+                "Something went wrong";
+
+            toast.error(message);
+            dispatch(setError(message));
         } finally {
             dispatch(setLoading(false))
 
@@ -31,7 +39,13 @@ const useAuth = () => {
             toast.success(res.message)
             dispatch(setUser(res.data))
         } catch (error) {
-            dispatch(setError(error.response?.data?.message || "Registeration failed"))
+            const message =
+                error?.response?.data?.message ||
+                error.message ||
+                "Something went wrong";
+
+            toast.error(message);
+            dispatch(setError(message));
         } finally {
             dispatch(setLoading(false))
         }
@@ -44,7 +58,7 @@ const useAuth = () => {
             const res = await UserGetMe()
             dispatch(setUser(res.data))
         } catch (error) {
-            dispatch(setError(error.response?.data?.message || "Registeration failed"))
+            console.log(error);
         } finally {
             dispatch(setLoading(false))
         }
@@ -53,13 +67,27 @@ const useAuth = () => {
 
     const handleProfile = async () => {
         try {
-            dispatch(setLoading(true))
             const res = await UserProfie()
             setUserdata(res.data)
         } catch (error) {
             dispatch(setError(error.response?.data?.message || "Registeration failed"))
-        } finally {
-            dispatch(setLoading(false))
+        }
+    }
+
+    const handlelogout = async () => {
+        try {
+            const res = await Userlogout()
+            toast.success(res.message)
+            dispatch(setUser(null))
+        } catch (error) {
+            const message =
+                error?.response?.data?.message ||
+                error.message ||
+                "Something went wrong";
+
+            toast.error(message);
+            dispatch(setError(message));
+
         }
     }
 
@@ -67,15 +95,38 @@ const useAuth = () => {
         try {
             const res = await UserChangePassowrd({ oldPassword, newPassword })
             toast.success(res.message)
-            // navigate('/')
+            return res
         } catch (error) {
+            const message =
+                error?.response?.data?.message ||
+                error.message ||
+                "Something went wrong";
+
+            toast.error(message);
+            dispatch(setError(message));
             console.error(error);
         }
     }
 
+    const handleEmailSendAgian = async (email) => {
+        try {
+            const res = await VerifyEmailSendAgain(email);
 
+            toast.success(res.message || "Verification email sent");
+            return res;
 
-    return { handleRegister, handleLogin, handleGetme, handleProfile, handleChangePassword, userdata, setUserdata }
+        } catch (error) {
+            const message =
+                error?.response?.data?.message ||
+                error.message ||
+                "Something went wrong";
+
+            toast.error(message);
+            dispatch(setError(message));
+            console.error(error);
+        }
+    };
+    return { handleRegister, handleEmailSendAgian, handlelogout, handleLogin, handleGetme, handleProfile, handleChangePassword, userdata, setUserdata }
 }
 
 export default useAuth

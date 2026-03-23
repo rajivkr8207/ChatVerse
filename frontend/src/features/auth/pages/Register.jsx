@@ -1,7 +1,9 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import useAuth from "../hook/useAuth";
 import { useSelector } from "react-redux";
+import Button from "../../../components/common/Button";
+import { toast } from "react-toastify";
 
 export default function Register() {
   const [formData, setFormData] = useState({
@@ -9,7 +11,9 @@ export default function Register() {
     username: "",
     email: "",
     password: "",
+    confirmPassword: ""
   });
+  const navigate = useNavigate()
   const { handleRegister } = useAuth()
   const handleChange = (e) => {
     setFormData({
@@ -25,14 +29,20 @@ export default function Register() {
   }
   const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log(formData);
-    await handleRegister(formData)
+    if (formData.confirmPassword != formData.password) {
+      toast.error('password confirm passoword is not Matched')
+      return
+    }
+    const res = await handleRegister(formData)
+    if (res.success) {
+      navigate('/login')
+    }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-900 text-white">
+    <div className="min-h-screen flex items-center justify-center text-white">
 
-      <div className="w-full max-w-md bg-gray-800 rounded-2xl shadow-lg p-8">
+      <div className="w-full max-w-md bg-neutral-800 rounded-2xl shadow-lg p-8">
 
         <h2 className="text-3xl font-bold text-center mb-6">
           Create Account
@@ -48,7 +58,7 @@ export default function Register() {
               placeholder="John Doe"
               value={formData.fullName}
               onChange={handleChange}
-              className="w-full p-3 rounded-lg bg-gray-700 border border-gray-600 focus:outline-none focus:border-blue-500"
+              className="w-full p-3 rounded-lg bg-neutral-700 border border-neutral-600 focus:outline-none focus:border-orange-500"
               required
             />
           </div>
@@ -61,7 +71,7 @@ export default function Register() {
               placeholder="john123"
               value={formData.username}
               onChange={handleChange}
-              className="w-full p-3 rounded-lg bg-gray-700 border border-gray-600 focus:outline-none focus:border-blue-500"
+              className="w-full p-3 rounded-lg bg-neutral-700 border border-neutral-600 focus:outline-none focus:border-orange-500"
               required
             />
           </div>
@@ -74,7 +84,7 @@ export default function Register() {
               placeholder="john@email.com"
               value={formData.email}
               onChange={handleChange}
-              className="w-full p-3 rounded-lg bg-gray-700 border border-gray-600 focus:outline-none focus:border-blue-500"
+              className="w-full p-3 rounded-lg bg-neutral-700 border border-neutral-600 focus:outline-none focus:border-orange-500"
               required
             />
           </div>
@@ -87,23 +97,33 @@ export default function Register() {
               placeholder="********"
               value={formData.password}
               onChange={handleChange}
-              className="w-full p-3 rounded-lg bg-gray-700 border border-gray-600 focus:outline-none focus:border-blue-500"
+              className="w-full p-3 rounded-lg bg-neutral-700 border border-neutral-600 focus:outline-none focus:border-orange-500"
               required
             />
           </div>
-
-          <button
+          <div>
+            <label className="block text-sm mb-1">conform Password</label>
+            <input
+              type="password"
+              name="confirmPassword"
+              placeholder="********"
+              value={formData.confirmPassword}
+              onChange={handleChange}
+              className="w-full p-3 rounded-lg bg-neutral-700 border border-neutral-600 focus:outline-none focus:border-orange-500"
+              required
+            />
+          </div>
+          <Button
             type="submit"
-            className="w-full bg-blue-600 hover:bg-blue-700 transition p-3 rounded-lg font-semibold"
-          >
-            Register
-          </button>
+            disabled={loading}
+            className="w-full py-3"
+          >{loading ? 'Registering..' : "Register"}</Button>
 
         </form>
 
-        <p className="text-sm text-gray-400 text-center mt-6">
+        <p className="text-sm text-neutral-400 text-center mt-6">
           Already have an account?
-          <Link to='/login' className="text-blue-500 cursor-pointer ml-1">
+          <Link to='/login' className="text-orange-500 cursor-pointer ml-1">
             Login
           </Link>
         </p>

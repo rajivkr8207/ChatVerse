@@ -1,4 +1,3 @@
-import React, { useEffect, useRef } from "react";
 import {
   Plus,
   Settings,
@@ -8,32 +7,59 @@ import {
   Moon,
   Sun,
   Trash2,
-  Edit3
+  X,
+  Menu,
+  Search,
 } from "lucide-react";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
-
-export default function Sidebar({ page, setPage, hasMore, loadingMore, sidebarOpen, darkMode, handleGetAllChat, startNewChat, deleteChat, toggleDarkMode }) {
+import useAuth from "../../auth/hook/useAuth";
+import cvlogo from '../../../../public/cvlogo.png'
+import { Setchatid, Setchatmessage, SetSearching } from "../chat.slice";
+import Button from "../../../components/common/Button";
+export default function Sidebar({ toggleSidebar, page, setPage, hasMore, sidebarOpen, darkMode, startNewChat, deleteChat, toggleDarkMode }) {
   const chatID = useSelector(state => state.chat.chatId)
   const chats = useSelector(state => state.chat.chats)
-
+  const { handlelogout } = useAuth()
   const navigate = useNavigate()
+  const dispatch = useDispatch()
 
-
+  const navigatepage = (nav) => {
+    navigate(nav)
+    dispatch(Setchatid(null))
+    dispatch(Setchatmessage([]))
+  }
   return (
     <div
       className={`${sidebarOpen ? 'w-72' : 'w-0'
         } bg-gradient-to-b from-neutral-900 to-neutral-950 text-white transition-all duration-300 ease-in-out overflow-hidden flex flex-col border-r border-neutral-800/50`}
     >
-      {/* Header with New Chat Button */}
-      <div className="p-5 border-b border-neutral-800/50">
+      <div className="flex p-3  justify-between items-center ">
+        <div onClick={() => navigatepage('/')} className="p-1 bg-black rounded-full">
+          <img src={cvlogo} className="w-8 h-8" alt="" srcset="" />
+        </div>
         <button
+          onClick={toggleSidebar}
+          className="p-2 hover:bg-neutral-100 dark:hover:bg-neutral-700 rounded-xl transition-all duration-200 mr-4 text-neutral-600 dark:text-neutral-300 hover:text-neutral-900 dark:hover:text-white"
+        >
+          {sidebarOpen ? <X size={20} /> : <Menu size={20} />}
+        </button>
+      </div>
+      <div className="p-5 border-b border-neutral-800/50 flex flex-col gap-5">
+        <Button
           onClick={startNewChat}
-          className="w-full flex items-center justify-center gap-3 px-4 py-3.5 bg-gradient-to-r from-orange-600 to-orange-700 hover:from-orange-700 hover:to-orange-800 rounded-xl transition-all duration-200 border border-orange-500/20 shadow-lg shadow-orange-600/20 group"
+          className="w-full flex justify-center items-center gap-3 py-3"
         >
           <Plus size={18} className="group-hover:rotate-90 transition-transform duration-200" />
           <span className="font-medium">New Chat</span>
-        </button>
+        </Button>
+        <Button
+        onClick={()=>dispatch(SetSearching(true))}
+          className="flex justify-center items-center gap-3 py-3"
+          size="sm"
+        >
+          <Search /> Search Chat
+        </Button>
       </div>
 
       {/* Chat History */}
@@ -80,7 +106,7 @@ export default function Sidebar({ page, setPage, hasMore, loadingMore, sidebarOp
       {/* Sidebar Footer */}
       <div className="p-4 border-t border-neutral-800/50 bg-gradient-to-t from-neutral-900 to-transparent">
         {/* Profile Section */}
-        <div className="mb-2 px-3 py-2.5 hover:bg-neutral-800/70 rounded-xl transition-all duration-200 cursor-pointer group">
+        <div onClick={() => navigatepage('/profile')} className="mb-2 px-3 py-2.5 hover:bg-neutral-800/70 rounded-xl transition-all duration-200 cursor-pointer group">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-gradient-to-br from-orange-500/20 to-purple-500/20 rounded-xl group-hover:scale-110 transition-transform duration-200">
               <User size={18} className="text-orange-400 group-hover:text-orange-300" />
@@ -127,7 +153,7 @@ export default function Sidebar({ page, setPage, hasMore, loadingMore, sidebarOp
         </div>
 
         {/* Logout */}
-        <div className="mt-4 px-3 py-2.5 hover:bg-red-500/10 rounded-xl transition-all duration-200 cursor-pointer group">
+        <div onClick={() => { handlelogout() }} className="mt-4 px-3 py-2.5  hover:bg-red-500/10 rounded-xl transition-all duration-200 cursor-pointer group">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-red-500/10 rounded-xl group-hover:bg-red-500/20 transition-colors duration-200">
               <LogOut size={18} className="text-red-400 group-hover:text-red-300" />

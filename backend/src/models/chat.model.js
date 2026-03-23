@@ -10,9 +10,14 @@ const chatSchema = new mongoose.Schema(
         },
         title: {
             type: String,
-            default:"new Chat",
+            default: "new Chat",
             trim: true,
         },
+        isPublic: {
+            type: Boolean,
+            default: false
+        },
+        shareId: { type: String, unique: true, sparse: true },
     },
     {
         timestamps: true,

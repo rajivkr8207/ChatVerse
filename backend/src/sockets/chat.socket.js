@@ -19,10 +19,9 @@ export const handleSocketChat = (socket) => {
             await chatService.createMessage(
                 currentChatId,
                 message,
-                "user"
+                "user",userid
             );
 
-             // 🟢 🔥 IMPORTANT: send immediate response to frontend
             if (callback) {
                 callback({
                     chatId: currentChatId,
@@ -37,7 +36,8 @@ export const handleSocketChat = (socket) => {
             const aimesg = await chatService.createMessage(
                 currentChatId,
                 airesponse,
-                "ai"
+                "ai",
+                userid
             );
             socket.emit("typing", false);
             socket.emit("receive_message", {chat, aimesg});

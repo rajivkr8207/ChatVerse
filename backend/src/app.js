@@ -5,8 +5,6 @@ import AuthRouter from "./routes/auth.route.js";
 import cookieParser from 'cookie-parser'
 import cors from 'cors'
 import ChatRouter from "./routes/chat.route.js";
-import { ChatGeminimessage } from "./services/ai.server.js";
-// import messagerouter from "./routes/message.route.js";
 const app = express()
 
 
@@ -18,21 +16,9 @@ app.use(cors({
     origin: ['http://localhost:5173', 'http://127.0.0.1:5173'],
     credentials: true
 }))
+app.use(express.static('./public/dist'))
 
-app.get('/', (req, res, next) => {
-    try {
-        throw new Error("Server fucked up!");
-    } catch (error) {
-        error.status = 400
-        next(error)
-    }
 
-})
-
-// app.get("/api/hello", async (req, res) => {
-//     const response =  await ChatGeminimessage('what is ai in 50words')
-//     res.json({ message: "Hello World", response });
-// });
 
 app.get('/health', (req, res) => {
     return res.status(200).json({
@@ -41,7 +27,6 @@ app.get('/health', (req, res) => {
 })
 app.use('/api/auth', AuthRouter)
 app.use("/api/chat", ChatRouter);
-// app.use("/api/message",messagerouter);
 
 app.use(errorHandler);
 export default app;

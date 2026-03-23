@@ -8,6 +8,8 @@ const chatSlice = createSlice({
         chatmessages: [],
         isloading: false,
         error: null,
+        typing: false,
+        searching: false
     },
     reducers: {
         addnewMessage: (state, action) => {
@@ -32,6 +34,12 @@ const chatSlice = createSlice({
         Setchatid: (state, action) => {
             state.chatId = action.payload
         },
+        SetTyping: (state, action) => {
+            state.typing = action.payload
+        },
+        SetSearching: (state, action) => {
+            state.searching = action.payload
+        },
         setLoading: (state, action) => {
             state.isloading = action.payload
         },
@@ -41,5 +49,5 @@ const chatSlice = createSlice({
     }
 })
 
-export const { setError, addnewChat, addChatToend, setLoading, Setchatmessage, addnewMessage, Setchats, Setchatid } = chatSlice.actions
+export const { setError, SetTyping, SetSearching, addnewChat, addChatToend, setLoading, Setchatmessage, addnewMessage, Setchats, Setchatid } = chatSlice.actions
 export default chatSlice.reducer

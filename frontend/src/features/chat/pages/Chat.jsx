@@ -1,13 +1,12 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
 import {
   MessageCircle,
-  Send,
 } from 'lucide-react';
 import remarkGfm from 'remark-gfm'
 import ReactMarkdown from 'react-markdown'
 import useChat from '../hook/useChat';
 import { useDispatch, useSelector } from 'react-redux';
-import { addnewChat, addnewMessage, Setchatid, Setchatmessage } from '../chat.slice';
+import { addnewChat, addnewMessage, Setchatid, SetTyping } from '../chat.slice';
 import socket from '../../../lib/socket/socket';
 import TypingIndicator from '../components/TypingIndicator';
 import { motion } from "framer-motion";
@@ -26,7 +25,7 @@ const Chat = () => {
 
 
   const dispatch = useDispatch()
-  const [typing, setTyping] = useState(false);
+  const typing = useSelector(state => state.chat.typing)
   const chatID = useSelector(state => state.chat.chatId)
 
   const messagesEndRef = useRef(null);
@@ -65,7 +64,7 @@ const Chat = () => {
       }
     });
     socket.on("typing", (status) => {
-      setTyping(status);
+      dispatch(SetTyping(status));
     });
     socket.on("error", (err) => {
       console.error(err);
@@ -113,9 +112,7 @@ const Chat = () => {
               {msg?.role === 'user' ? (
                 <p className="text-[15px] leading-relaxed font-medium">{msg?.content}</p>
               ) : (
-                <motion.div initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.3 }}
+                <div
                   className="prose prose-sm dark:prose-invert max-w-none">
                   <ReactMarkdown
                     components={{
@@ -130,7 +127,7 @@ const Chat = () => {
                   >
                     {msg?.content}
                   </ReactMarkdown>
-                </motion.div>
+                </div>
               )}
               <p className="text-xs mt-2 opacity-60 text-right">
                 {/* Timestamp can be added here if needed */}

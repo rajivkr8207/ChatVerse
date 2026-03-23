@@ -7,7 +7,6 @@ import { useEffect } from "react"
 import useAuth from "../features/auth/hook/useAuth"
 const App = () => {
 const {handleGetme} = useAuth()
-  // const dispatch = useDispatch()
 
     useEffect(() => {
         handleGetme()

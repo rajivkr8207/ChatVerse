@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { addChatToend, addnewChat, addnewMessage, Setchatid, Setchatmessage, Setchats, setLoading } from "../chat.slice";
-import { DeleteChat, GetAllChat, GetChatById, Sendmessage } from "../services/chat.service"
+import { DeleteChat, GetAllChat, GetChatById, SearchChat, Sendmessage, ShareChat } from "../services/chat.service"
 import { initializeSocketconnection } from "../services/chat.socket"
 import { useDispatch, useSelector } from 'react-redux';
 
@@ -26,7 +26,6 @@ const useChat = () => {
         dispatch(setLoading(true))
         try {
             const res = await Sendmessage(data)
-            console.log(res);
             dispatch(addnewMessage(res.data.usermsg))
             dispatch(addnewMessage(res.data.aimesg))
             if (!chatId) {
@@ -59,8 +58,7 @@ const useChat = () => {
     const handleGetChatbyId = async (chatid) => {
         try {
             const res = await GetChatById(chatid)
-            dispatch(Setchatmessage(res.data.chatmsg))
-            console.log(res);
+            dispatch(Setchatmessage(res.data.messages))
         } catch (error) {
             console.error(error);
         }
@@ -78,8 +76,25 @@ const useChat = () => {
         }
     }
 
+    const handleShareChat = async (chatid) => {
+        try {
+            const res = await ShareChat(chatid)
+            return res
+        } catch (error) {
+            console.error(error);
+        }
+    }
+
+      const handleSearchChat = async (query) => {
+        try {
+            const res = await SearchChat(query)
+            return res
+        } catch (error) {
+            console.error(error);
+        }
+    }
     return {
-        initializeSocketconnection, page, setPage, hasMore, loadingMore, handleSendMessageApi, handleGetAllChat, handleDeleteChat, handleGetChatbyId
+        initializeSocketconnection,handleSearchChat, handleShareChat, page, setPage, hasMore, loadingMore, handleSendMessageApi, handleGetAllChat, handleDeleteChat, handleGetChatbyId
     }
 }
 

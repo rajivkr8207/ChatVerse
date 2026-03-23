@@ -11,7 +11,7 @@ class ChatService {
     async createChat(userid, title) {
         const chat = await ChatModel.create({
             user: userid,
-            title: title
+            title: title, 
         })
         return chat
     }
@@ -21,8 +21,9 @@ class ChatService {
         })
         return chat
     }
-    async createMessage(chatid, msg, role) {
+    async createMessage(chatid, msg, role, userid) {
         const data = await MessageModel.create({
+            user:userid,
             chat: chatid,
             content: msg,
             role: role

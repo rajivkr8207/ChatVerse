@@ -24,6 +24,9 @@ export const sendVerificationEmail = async (email, name, verifyLink) => {
          Verify Account
       </a>
   
+      <p style="margin-top:5px">
+        ${verifyLink}
+      </p>
       <p style="margin-top:20px">
         If you did not create this account, please ignore this email.
       </p>
@@ -32,7 +35,7 @@ export const sendVerificationEmail = async (email, name, verifyLink) => {
     `;
 
     await MailTranspoter.sendMail({
-        from: `rjai ${config.MAIL_EMAIL}`,
+        from: `${config.MAIL_EMAIL}`,
         to: email,
         subject: "Verify your account",
         html

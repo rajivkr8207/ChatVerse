@@ -10,7 +10,7 @@ export async function Sendmessage(data) {
 
 
 
-export async function GetAllChat({page}) {
+export async function GetAllChat({ page }) {
     const res = await api.get(`/chat?page=${page}`)
     return res.data
 }
@@ -22,5 +22,15 @@ export async function GetChatById(chatid) {
 
 export async function DeleteChat(chatid) {
     const res = await api.delete(`/chat/${chatid}`)
+    return res.data
+}
+
+export async function SearchChat(search) {
+    const res = await api.get(`/chat/search?q=${search}`)
+    return res.data
+}
+
+export async function ShareChat(chatid) {
+    const res = await api.post(`/chat/share/${chatid}`)
     return res.data
 }

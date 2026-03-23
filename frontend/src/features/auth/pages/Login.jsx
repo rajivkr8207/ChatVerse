@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link, Navigate } from "react-router-dom";
 import useAuth from "../hook/useAuth";
 import { useSelector } from "react-redux";
+import Button from "../../../components/common/Button";
 
 export default function Login() {
     const [formData, setFormData] = useState({
@@ -9,10 +10,10 @@ export default function Login() {
         password: "",
     });
     const { handleLogin } = useAuth()
-    const user  = useSelector((state)=> state.auth.user)
-    const loading  = useSelector((state)=> state.auth.loading)
+    const user = useSelector((state) => state.auth.user)
+    const loading = useSelector((state) => state.auth.loading)
 
-    if (!loading && user){
+    if (!loading && user) {
         return <Navigate to={'/'} replace />
     }
     const handleChange = (e) => {
@@ -25,14 +26,13 @@ export default function Login() {
     const handleSubmit = async (e) => {
         e.preventDefault();
         await handleLogin(formData)
-        // console.log(formData);
     };
 
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-900 text-white">
+        <div className="min-h-screen flex items-center justify-center text-white">
 
-            <div className="w-full max-w-md bg-gray-800 rounded-2xl shadow-lg p-8">
+            <div className="w-full max-w-md bg-neutral-800 rounded-2xl shadow-lg p-8">
 
                 <h2 className="text-3xl font-bold text-center mb-6">
                     Login Account
@@ -48,7 +48,7 @@ export default function Login() {
                             placeholder="john123"
                             value={formData.identifier}
                             onChange={handleChange}
-                            className="w-full p-3 rounded-lg bg-gray-700 border border-gray-600 focus:outline-none focus:border-blue-500"
+                            className="w-full p-3 rounded-lg bg-neutral-700 border border-neutral-600 focus:outline-none focus:border-orange-500"
                             required
                         />
                     </div>
@@ -60,23 +60,26 @@ export default function Login() {
                             placeholder="********"
                             value={formData.password}
                             onChange={handleChange}
-                            className="w-full p-3 rounded-lg bg-gray-700 border border-gray-600 focus:outline-none focus:border-blue-500"
+                            className="w-full p-3 rounded-lg bg-neutral-700 border border-neutral-600 focus:outline-none focus:border-orange-500"
                             required
                         />
                     </div>
-
-                    <button
+                    <Button
                         type="submit"
-                        className="w-full bg-blue-600 hover:bg-blue-700 transition p-3 rounded-lg font-semibold"
-                    >
-                        Login
-                    </button>
-
+                        disabled={loading}
+                        className="w-full py-3"
+                    >{loading ? 'loading..' : "Login"}</Button>
                 </form>
 
-                <p className="text-sm text-gray-400 text-center mt-6">
+                <p className="text-sm text-neutral-400 text-center mt-6">
+                   Resend verify mail?
+                    <Link to='/resend/verifyemail' className="text-orange-500 cursor-pointer ml-1">
+                        resend email
+                    </Link>
+                </p>
+<p className="text-sm text-neutral-400 text-center mt-6">
                     Not have an account?
-                    <Link to='/register' className="text-blue-500 cursor-pointer ml-1">
+                    <Link to='/register' className="text-orange-500 cursor-pointer ml-1">
                         Register
                     </Link>
                 </p>
