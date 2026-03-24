@@ -1,148 +1,117 @@
 import { useEffect, useRef } from 'react';
-import {
-  MessageCircle,
-} from 'lucide-react';
-import remarkGfm from 'remark-gfm'
-import ReactMarkdown from 'react-markdown'
+import { MessageCircle } from 'lucide-react';
+import remarkGfm from 'remark-gfm';
+import ReactMarkdown from 'react-markdown';
 import useChat from '../hook/useChat';
 import { useDispatch, useSelector } from 'react-redux';
-import { addnewChat, addnewMessage, Setchatid, SetTyping } from '../chat.slice';
+import {
+  addMessage,
+  setActiveChat,
+  setTyping
+} from '../chat.slice';
 import socket from '../../../lib/socket/socket';
 import TypingIndicator from '../components/TypingIndicator';
-import { motion } from "framer-motion";
-import { useNavigate, useParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
+
 const SharingChat = () => {
 
   const { chatid } = useParams();
-  const { handleGetAllChat, handleGetShareChat } = useChat()
+  const dispatch = useDispatch();
+
+  const chats = useSelector(state => state.chat.chats);
+  const activeChatId = useSelector(state => state.chat.activeChatId);
+
+  const messages = chats[activeChatId]?.messages || [];
+  const typing = chats[activeChatId]?.typing || false;
+
+  const messagesEndRef = useRef(null);
+  const chatIdRef = useRef(activeChatId);
+
+  const { handleGetAllChat, handleGetShareChat } = useChat();
+
+  useEffect(() => {
+    chatIdRef.current = activeChatId;
+  }, [activeChatId]);
 
   useEffect(() => {
     if (chatid) {
-      dispatch(Setchatid(chatid));
+      dispatch(setActiveChat(chatid));
       handleGetShareChat(chatid);
     }
   }, [chatid]);
 
-
-
-  const dispatch = useDispatch()
-  const typing = useSelector(state => state.chat.typing)
-  const chatID = useSelector(state => state.chat.chatId)
-
-  const messagesEndRef = useRef(null);
-  const scrollContainerRef = useRef(null);
-
-  const messages = useSelector(state => state.chat.chatmessages)
-
-
-
-  const chatIdRef = useRef(chatID);
-
   useEffect(() => {
-    chatIdRef.current = chatID;
-  }, [chatID]);
+    handleGetAllChat();
+  }, []);
 
-  useEffect(() => {
-    handleGetAllChat()
-  }, [])
-  const navigate = useNavigate()
-
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "auto" });
-  };
   useEffect(() => {
     socket.on("receive_message", (msg) => {
-      const { aimesg, chat } = msg
-      if (aimesg.chat == chatIdRef.current) {
-        dispatch(addnewMessage(aimesg))
-      }
-      else {
-        dispatch(Setchatid(aimesg.chat))
-        dispatch(addnewChat(chat))
-        navigate(`/chat/${aimesg.chat}`)
-        dispatch(addnewMessage(aimesg))
+      const { aimesg } = msg;
+      const chatId = aimesg.chat;
+
+      if (chatId === chatIdRef.current) {
+        dispatch(addMessage({
+          chatId,
+          message: aimesg
+        }));
       }
     });
-    socket.on("typing", (status) => {
-      dispatch(SetTyping(status));
-    });
-    socket.on("error", (err) => {
-      console.error(err);
+
+    socket.on("typing", ({ chatId, status }) => {
+      dispatch(setTyping({ chatId, typing: status }));
     });
 
     return () => {
       socket.off("receive_message");
-      socket.off("error");
       socket.off("typing");
     };
   }, []);
 
   useEffect(() => {
-    scrollToBottom();
+    messagesEndRef.current?.scrollIntoView({ behavior: "auto" });
   }, [messages]);
 
-
-
   return (
-    <>
-      <div
-        ref={scrollContainerRef}
-        className="flex-1 overflow-y-auto p-6 space-y-6 scroll-smooth"
-      >
-        {messages?.map((msg) => (
+    <div className="flex-1 overflow-y-auto p-6 space-y-6">
+
+      {messages.map((msg) => (
+        <div
+          key={msg._id || `${msg.role}-${msg.content}`}
+          className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
+        >
           <div
-            key={msg?.id || `${msg?.role}-${msg?.content}-${Date.now()}`}
-            className={`flex ${msg?.role === 'user' ? 'justify-end' : 'justify-start'} animate-fadeIn`}
+            className={`max-w-[80%] lg:max-w-[70%] rounded-2xl p-4 ${
+              msg.role === 'user'
+                ? 'bg-gradient-to-r from-orange-500 to-orange-600 text-white'
+                : 'bg-white dark:bg-neutral-800 text-neutral-800 dark:text-neutral-100 border'
+            }`}
           >
-            <div
-              className={`max-w-[80%] lg:max-w-[70%] rounded-2xl p-4 shadow-sm ${msg?.role === 'user'
-                ? 'bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-br-none'
-                : 'bg-white dark:bg-neutral-800 text-neutral-800 dark:text-neutral-100 rounded-bl-none border border-neutral-200/50 dark:border-neutral-700/50'
-                }`}
-            >
-              {msg?.role === 'ai' && (
-                <div className="flex items-center gap-2 mb-2">
-                  <div className="p-1 bg-orange-100 dark:bg-orange-900/30 rounded-lg">
-                    <MessageCircle size={14} className="text-orange-600 dark:text-orange-400" />
-                  </div>
-                  <span className="text-xs font-medium text-orange-600 dark:text-orange-400">AI Assistant</span>
-                </div>
-              )}
 
-              {msg?.role === 'user' ? (
-                <p className="text-[15px] leading-relaxed font-medium">{msg?.content}</p>
-              ) : (
-                <div
-                  className="prose prose-sm dark:prose-invert max-w-none">
-                  <ReactMarkdown
-                    components={{
-                      p: ({ children }) => <p className='mb-3 last:mb-0 text-[15px] leading-relaxed'>{children}</p>,
-                      ul: ({ children }) => <ul className='mb-3 space-y-1 list-disc pl-5'>{children}</ul>,
-                      ol: ({ children }) => <ol className='mb-3 space-y-1 list-decimal pl-5'>{children}</ol>,
-                      li: ({ children }) => <li className='text-[15px] leading-relaxed'>{children}</li>,
-                      code: ({ children }) => <code className='rounded bg-neutral-100 dark:bg-neutral-700 px-1.5 py-0.5 font-mono text-sm text-pink-600 dark:text-pink-400'>{children}</code>,
-                      pre: ({ children }) => <pre className='mb-3 overflow-x-auto rounded-xl bg-neutral-900 dark:bg-neutral-950 p-4 font-mono text-sm text-neutral-100'>{children}</pre>
-                    }}
-                    remarkPlugins={[remarkGfm]}
-                  >
-                    {msg?.content}
-                  </ReactMarkdown>
-                </div>
-              )}
-              <p className="text-xs mt-2 opacity-60 text-right">
-              </p>
-            </div>
+            {msg.role === 'ai' && (
+              <div className="flex items-center gap-2 mb-2">
+                <MessageCircle size={14} className="text-orange-500" />
+                <span className="text-xs font-medium text-orange-500">
+                  AI Assistant
+                </span>
+              </div>
+            )}
+
+            {msg.role === 'user' ? (
+              <p>{msg.content}</p>
+            ) : (
+              <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                {msg.content}
+              </ReactMarkdown>
+            )}
+
           </div>
-        ))}
+        </div>
+      ))}
 
-        {typing && (
-          <TypingIndicator />
-        )}
+      {typing && <TypingIndicator />}
 
-        <div ref={messagesEndRef} />
-      </div>
-
-    </>
+      <div ref={messagesEndRef} />
+    </div>
   );
 };
 

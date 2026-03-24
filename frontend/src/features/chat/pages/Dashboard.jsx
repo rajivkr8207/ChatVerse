@@ -8,7 +8,13 @@ import {
 import Sidebar from '../components/SideNavbar';
 import useChat from '../hook/useChat';
 import { useDispatch, useSelector } from 'react-redux';
-import { addnewChat, addnewMessage, Setchatid, Setchatmessage, SetTyping, SetSharing } from '../chat.slice';
+import {
+  addNewChat,
+  addMessage,
+  setActiveChat,
+  setTyping,
+  setSharing,
+} from "../chat.slice";
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import socket from '../../../lib/socket/socket';
 import ChatSearchLanding from '../components/ChatSearchLanding';
@@ -21,25 +27,27 @@ const Dashboard = () => {
   const dispatch = useDispatch()
   const location = useLocation();
   const pathname = location.pathname;
-    const pathid = `${window.location.pathname.split('/')[1]}`
+  const pathid = `${window.location.pathname.split('/')[1]}`
+  const deleteid = `${window.location.pathname.split('/')[2]}`
 
   const inputRef = useRef(null);
-  // const chats = useSelector(state => state.chat.chats)
-  const chatID = useSelector(state => state.chat.chatId)
   const userid = useSelector(state => state.auth.user)
-  const messages = useSelector(state => state.chat.chatmessages)
-  const typing = useSelector(state => state.chat.typing)
+
   const sharing = useSelector(state => state.chat.sharing)
 
+  const activeChatId = useSelector(state => state.chat.activeChatId)
+  const chats = useSelector(state => state.chat.chats)
 
+  const messages = chats[activeChatId]?.messages || []
+  const typing = chats[activeChatId]?.typing || false
   const { handleGetAllChat, setPage, handleDeleteChat, handleGetChatbyId, page, hasMore, loadingMore, } = useChat()
   const messagesEndRef = useRef(null);
 
-  const chatIdRef = useRef(chatID);
+  const chatIdRef = useRef(activeChatId);
   const searching = useSelector(state => state.chat.searching)
   useEffect(() => {
-    chatIdRef.current = chatID;
-  }, [chatID]);
+    chatIdRef.current = activeChatId;
+  }, [activeChatId]);
 
 
   const toggleSidebar = () => setSidebarOpen(!sidebarOpen);
@@ -52,72 +60,80 @@ const Dashboard = () => {
     e.preventDefault();
     const value = msgtext || inputRef.current.value;
     if (!value.trim()) return;
-    const tempChatId = chatID || `temp-${Date.now()}`;
-    const isNewChat = !chatID;
 
+    const tempChatId = activeChatId || `temp-${Date.now()}`;
+    const isNewChat = !activeChatId;
     const data = {
       message: value,
-      chatid: chatID || null,
+      chatid: activeChatId || null,
       userid: userid.id
     };
+
     if (isNewChat) {
-      navigate(`/chat/${tempChatId}`); // 🚀 INSTANT REDIRECT
+      navigate(`/chat/${tempChatId}`);
+      dispatch(addNewChat({
+        _id: tempChatId,
+        title: value,
+        isPublic: false
+      }));
+
     }
-    dispatch(addnewMessage({
-      _id: Date.now(),
-      chat: tempChatId,
-      content: value,
-      role: "user"
+
+    dispatch(addMessage({
+      chatId: tempChatId,
+      message: {
+        _id: Date.now(),
+        role: "user",
+        content: value
+      },
     }));
-
-    dispatch(SetTyping(true));
-
+    dispatch(setActiveChat(tempChatId));
+    dispatch(setTyping({ chatId: tempChatId, typing: true }));
 
     socket.emit("send_message", data, (response) => {
-      // 👇 IMPORTANT: backend should send ack
-      const { chatId, chat, aimesg } = response;
+      const { chatId, chat } = response;
+      let finalChatId = tempChatId;
 
       if (isNewChat && chatId) {
-        dispatch(Setchatid(chatId));
-        dispatch(addnewChat(chat));
-        navigate(`/chat/${chatId}`);  // 🔥 MAIN FIX
+        dispatch(addNewChat(chat));
+        dispatch(setTyping({ chatId: chatId, typing: true }));
+        dispatch(setActiveChat(chatId));
+        navigate(`/chat/${chatId}`);
+        finalChatId = chatId;
       }
 
-      if (
-        aimesg.chat == chatIdRef.current ||
-        chatIdRef.current?.startsWith("temp")
-      ) {
-        dispatch(addnewMessage(aimesg))
+      if (finalChatId !== activeChatId && !finalChatId.startsWith("temp")) {
+        return;
       }
     });
 
     inputRef.current.value = "";
   };
+
+
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
   const startNewChat = () => {
-    dispatch(Setchatmessage([]))
-    dispatch(Setchatid(null))
-    navigate('/')
-  }
+    dispatch(setActiveChat(null));
+    navigate('/');
+  };
 
   const selectChat = (chatId) => {
-    dispatch(Setchatid(chatId))
-    handleGetChatbyId(chatId)
+    dispatch(setActiveChat(chatId));
+    handleGetChatbyId(chatId);
   };
 
   const deleteChat = (chatId, e) => {
     e.stopPropagation();
-    const path = (pathname.split('/')[2]);
-    if (path == chatId) {
-      dispatch(Setchatmessage([]))
-      dispatch(Setchatid(null))
-      navigate('/')
-    }
-    handleDeleteChat(chatId)
-  };
+    if (deleteid.startsWith('temp')) return
 
+    if (activeChatId === chatId) {
+      dispatch(setActiveChat(null));
+      navigate('/');
+    }
+    handleDeleteChat(chatId);
+  };
 
   return (
     <div className={`h-screen flex ${darkMode ? 'dark' : ''}`}>
@@ -137,9 +153,9 @@ const Dashboard = () => {
               <span className='chatlogo'>chat</span><span className='verse'>verse</span>
             </p>
           </div>
-          {chatID && pathid == 'chat' &&
+          {activeChatId && pathid == 'chat' &&
             <div>
-              <Button onClick={() => dispatch(SetSharing(true))} size="sm" className='text-white flex gap-3 justify-center items-center'>
+              <Button onClick={() => dispatch(setSharing(true))} size="sm" className='text-white flex gap-3 justify-center items-center'>
                 <Share /> Share
               </Button>
             </div>

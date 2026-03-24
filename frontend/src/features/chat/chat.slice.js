@@ -1,57 +1,149 @@
 import { createSlice } from "@reduxjs/toolkit";
 
+const initialState = {
+    chats: {},
+    chatOrder: [],
+    activeChatId: null,
+    searching: false,
+    sharing: false
+};
+
 const chatSlice = createSlice({
     name: "chat",
-    initialState: {
-        chats: [],
-        chatId: null,
-        chatmessages: [],
-        isloading: false,
-        error: null,
-        typing: false,
-        searching: false,
-        sharing: false,
-    },
+    initialState,
     reducers: {
-        addnewMessage: (state, action) => {
-            state.chatmessages.push(action.payload)
+
+        addNewChat: (state, action) => {
+            const chat = action.payload;
+            state.chats[chat._id] = {
+                ...chat,
+                messages: [],
+                loading: false,
+                typing: false,
+                error: null
+            };
+            state.chatOrder.unshift(chat._id);
         },
-        addnewChat: (state, action) => {
-            state.chats.unshift(action.payload)
+        removeAllTempChats: (state) => {
+            const newChats = {};
+            const newOrder = [];
+
+            Object.keys(state.chats).forEach(id => {
+                if (!id.startsWith("temp")) {
+                    newChats[id] = state.chats[id];
+                    newOrder.unshift(id);
+                }
+            });
+
+            state.chats = newChats;
+            state.chatOrder = newOrder;
+
+            if (state.activeChatId?.startsWith("temp")) {
+                state.activeChatId = null;
+            }
         },
-        addChatToend: (state, action) => {
+        replaceMessage: (state, action) => {
+            const { chatId, tempId, newMessage } = action.payload;
+
+            const msgs = state.chats[chatId]?.messages || [];
+
+            const index = msgs.findIndex(m => m._id === tempId);
+
+            if (index !== -1) {
+                msgs[index] = newMessage;
+            }
+        },
+        setActiveChat: (state, action) => {
+            state.activeChatId = action.payload;
+        },
+
+        addMessage: (state, action) => {
+            const { chatId, message } = action.payload;
+            if (state.chats[chatId]) {
+                state.chats[chatId].messages.push(message);
+            }
+        },
+
+        setMessages: (state, action) => {
+            const { chatId, messages } = action.payload;
+            if (state.chats[chatId]) {
+                state.chats[chatId].messages = messages;
+            }
+        },
+
+        setChatLoading: (state, action) => {
+            const { chatId, loading } = action.payload;
+            if (state.chats[chatId]) {
+                state.chats[chatId].loading = loading;
+            }
+        },
+
+        setTyping: (state, action) => {
+            const { chatId, typing } = action.payload;
+            if (state.chats[chatId]) {
+                state.chats[chatId].typing = typing;
+            }
+        },
+
+        setChatError: (state, action) => {
+            const { chatId, error } = action.payload;
+            if (state.chats[chatId]) {
+                state.chats[chatId].error = error;
+            }
+        },
+
+        addChatsToEnd: (state, action) => {
             const newChats = action.payload;
-            const unique = newChats.filter(
-                (newMsg) => !state.chats.some(c => c._id === newMsg._id)
-            );
-            state.chats.push(...unique);
+
+            newChats.forEach(chat => {
+                if (!state.chats[chat._id]) {
+                    state.chats[chat._id] = {
+                        ...chat,
+                        messages: [],
+                        loading: false,
+                        typing: false,
+                        error: null
+                    };
+                    state.chatOrder.push(chat._id);
+                }
+            });
         },
-        Setchats: (state, action) => {
-            state.chats = action.payload
+
+        setSearching: (state, action) => {
+            state.searching = action.payload;
         },
-        Setchatmessage: (state, action) => {
-            state.chatmessages = action.payload
+
+        setSharing: (state, action) => {
+            state.sharing = action.payload;
         },
-        Setchatid: (state, action) => {
-            state.chatId = action.payload
-        },
-        SetTyping: (state, action) => {
-            state.typing = action.payload
-        },
-        SetSearching: (state, action) => {
-            state.searching = action.payload
-        },
-        SetSharing: (state, action) => {
-            state.sharing = action.payload
-        },
-        setLoading: (state, action) => {
-            state.isloading = action.payload
-        },
-        setError: (state, action) => {
-            state.error = action.payload
+        removeChat: (state, action) => {
+            const chatId = action.payload;
+
+            delete state.chats[chatId];
+
+            state.chatOrder = state.chatOrder.filter(id => id !== chatId);
+
+            if (state.activeChatId === chatId) {
+                state.activeChatId = null;
+            }
         }
     }
-})
+});
 
-export const { setError, SetTyping,SetSharing, SetSearching, addnewChat, addChatToend, setLoading, Setchatmessage, addnewMessage, Setchats, Setchatid } = chatSlice.actions
-export default chatSlice.reducer
+export const {
+    addNewChat,
+    setActiveChat,
+    addMessage,
+    setMessages,
+    setChatLoading,
+    setTyping,
+    setChatError,
+    addChatsToEnd,
+    setSearching,
+    replaceMessage,
+    removeChat,
+    removeAllTempChats,
+    setSharing
+} = chatSlice.actions;
+
+export default chatSlice.reducer;

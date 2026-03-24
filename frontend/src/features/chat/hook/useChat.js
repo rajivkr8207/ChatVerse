@@ -1,65 +1,118 @@
 import { useEffect, useState } from "react";
-import { addChatToend, addnewChat, addnewMessage, Setchatid, Setchatmessage, Setchats, setError, setLoading } from "../chat.slice";
-import { DeleteChat, GetAllChat, GetChatById, GetShareChatApi, SearchChat, Sendmessage, ShareChatApi } from "../services/chat.service"
-import { initializeSocketconnection } from "../services/chat.socket"
-import { useDispatch, useSelector } from 'react-redux';
-import { toast } from 'react-toastify'
-import { useNavigate } from "react-router-dom";
-const useChat = () => {
-    const dispatch = useDispatch()
+import {
+    addChatsToEnd,
+    addNewChat,
+    addMessage,
+    setActiveChat,
+    setMessages,
+    setChatLoading,
+    setChatError,
+    removeChat
+} from "../chat.slice";
 
-    const allchats = useSelector(state => state.chat.chats)
-    const chatId = useSelector(state => state.chat.chatId)
+import {
+    DeleteChat,
+    GetAllChat,
+    GetChatById,
+    GetShareChatApi,
+    SearchChat,
+    Sendmessage,
+    ShareChatApi
+} from "../services/chat.service";
+
+import { initializeSocketconnection } from "../services/chat.socket";
+import { useDispatch, useSelector } from 'react-redux';
+import { toast } from 'react-toastify';
+import { useNavigate } from "react-router-dom";
+
+const useChat = () => {
+    const dispatch = useDispatch();
+    const navigate = useNavigate();
+
+    const activeChatId = useSelector(state => state.chat.activeChatId);
+
     const [page, setPage] = useState(1);
     const [hasMore, setHasMore] = useState(true);
     const [loadingMore, setLoadingMore] = useState(false);
 
-    const navigate = useNavigate()
-
+    // ✅ pagination
     useEffect(() => {
-        if (!hasMore) return
-        handleGetAllChat()
+        if (!hasMore) return;
+        handleGetAllChat();
     }, [page]);
 
-
-
+    // =========================
+    // ✅ SEND MESSAGE (API)
+    // =========================
     const handleSendMessageApi = async (data) => {
-        dispatch(setLoading(true))
+        const chatId = activeChatId;
+
+        dispatch(setChatLoading({ chatId, loading: true }));
+
         try {
-            const res = await Sendmessage(data)
-            dispatch(addnewMessage(res.data.usermsg))
-            dispatch(addnewMessage(res.data.aimesg))
-            if (!chatId) {
-                dispatch(Setchatid(res.data.aimesg.chat))
-                dispatch(addnewChat(res.data.chat))
+            const res = await Sendmessage(data);
+
+            const { usermsg, aimesg, chat } = res.data;
+            dispatch(addMessage({
+                chatId: usermsg.chat,
+                message: usermsg,
+                role: 'user'
+            }));
+
+            dispatch(addMessage({
+                chatId: aimesg.chat,
+                message: aimesg,
+                role: "ai"
+            }));
+
+            if (!chatId && chat) {
+                dispatch(addNewChat(chat));
+                dispatch(setActiveChat(chat._id));
             }
+
         } catch (error) {
             console.error(error);
+            dispatch(setChatError({
+                chatId,
+                error: error.message
+            }));
         } finally {
-            dispatch(setLoading(false))
+            dispatch(setChatLoading({ chatId, loading: false }));
         }
-    }
+    };
 
     const handleGetAllChat = async () => {
         if (!hasMore || loadingMore) return;
+
         setLoadingMore(true);
+
         try {
-            const res = await GetAllChat({ page })
-            dispatch(addChatToend(res.data.chats))
-            if (res.data.pagination.page == res.data.pagination.totalPages || res.data.pagination.page > res.data.pagination.totalPages) {
-                setHasMore(false)
+            const res = await GetAllChat({ page });
+
+            dispatch(addChatsToEnd(res.data.chats));
+
+            const { page: current, totalPages } = res.data.pagination;
+
+            if (current >= totalPages) {
+                setHasMore(false);
             }
+
         } catch (error) {
             console.error(error);
         } finally {
             setLoadingMore(false);
         }
-    }
+    };
 
-    const handleGetChatbyId = async (chatid) => {
+    const handleGetChatbyId = async (chatId) => {
         try {
-            const res = await GetChatById(chatid)
-            dispatch(Setchatmessage(res.data.messages))
+            const res = await GetChatById(chatId);
+
+            dispatch(setMessages({
+                chatId,
+                messages: res.data.messages
+            }));
+
         } catch (error) {
             const message =
                 error?.response?.data?.message ||
@@ -67,47 +120,62 @@ const useChat = () => {
                 "Something went wrong";
 
             toast.error(message);
-            dispatch(setError(message));
-            navigate('/')
-        }
-    }
 
-    const handleDeleteChat = async (chatid) => {
+            dispatch(setChatError({
+                chatId,
+                error: message
+            }));
+
+            navigate('/');
+        }
+    };
+
+    const handleDeleteChat = async (chatId) => {
         try {
-            const fileter = allchats.filter(item => {
-                return item._id != chatid
-            })
-            await DeleteChat(chatid)
-            dispatch(Setchats(fileter))
+            await DeleteChat(chatId);
+            dispatch(removeChat(chatId));
         } catch (error) {
             console.error(error);
         }
-    }
+    };
 
-    const handleShareChat = async (chatid) => {
+    const handleShareChat = async (chatId) => {
         try {
-            const res = await ShareChatApi(chatid)
-            return res
+            return await ShareChatApi(chatId);
         } catch (error) {
             console.error(error);
         }
-    }
+    };
 
     const handleSearchChat = async (query) => {
         try {
-            const res = await SearchChat(query)
-            return res
+            return await SearchChat(query);
         } catch (error) {
             console.error(error);
         }
-    }
+    };
 
 
     const handleGetShareChat = async (shareid) => {
         try {
-            const res = await GetShareChatApi(shareid)
-            dispatch(Setchatmessage(res.data))
-            return res
+            const res = await GetShareChatApi(shareid);
+
+            const tempChatId = `share-${Date.now()}`;
+
+            dispatch(addNewChat({
+                _id: tempChatId,
+                title: "Shared Chat"
+            }));
+
+            dispatch(setMessages({
+                chatId: tempChatId,
+                messages: res.data
+            }));
+
+            dispatch(setActiveChat(tempChatId));
+
+            return res;
+
         } catch (error) {
             const message =
                 error?.response?.data?.message ||
@@ -115,13 +183,30 @@ const useChat = () => {
                 "Something went wrong";
 
             toast.error(message);
-            dispatch(setError(message));
-            navigate('/')
-        }
-    }
-    return {
-        initializeSocketconnection, handleSearchChat, handleGetShareChat, handleShareChat, page, setPage, hasMore, loadingMore, handleSendMessageApi, handleGetAllChat, handleDeleteChat, handleGetChatbyId
-    }
-}
 
-export default useChat
+            dispatch(setChatError({
+                chatId: activeChatId,
+                error: message
+            }));
+
+            navigate('/');
+        }
+    };
+
+    return {
+        initializeSocketconnection,
+        handleSearchChat,
+        handleGetShareChat,
+        handleShareChat,
+        page,
+        setPage,
+        hasMore,
+        loadingMore,
+        handleSendMessageApi,
+        handleGetAllChat,
+        handleDeleteChat,
+        handleGetChatbyId
+    };
+};
+
+export default useChat;

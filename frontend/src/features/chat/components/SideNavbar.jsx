@@ -15,20 +15,19 @@ import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import useAuth from "../../auth/hook/useAuth";
 import cvlogo from '../../../../public/cvlogo.png'
-import { Setchatid, Setchatmessage, SetSearching } from "../chat.slice";
+import { setActiveChat, setSearching } from "../chat.slice";
 import Button from "../../../components/common/Button";
 export default function Sidebar({ toggleSidebar, page, setPage, hasMore, sidebarOpen, darkMode, startNewChat, deleteChat, toggleDarkMode }) {
-  const chatID = useSelector(state => state.chat.chatId)
-  const chats = useSelector(state => state.chat.chats)
+  const activeChatId = useSelector(state => state.chat.activeChatId);
+  const chats = useSelector(state => state.chat.chats);
+  const chatOrder = useSelector(state => state.chat.chatOrder);
   const { handlelogout } = useAuth()
   const navigate = useNavigate()
   const dispatch = useDispatch()
-
   const navigatepage = (nav) => {
-    navigate(nav)
-    dispatch(Setchatid(null))
-    dispatch(Setchatmessage([]))
-  }
+    navigate(nav);
+    dispatch(setActiveChat(null));
+  };
   return (
     <div
       className={`${sidebarOpen ? 'w-72' : 'w-0'
@@ -54,7 +53,7 @@ export default function Sidebar({ toggleSidebar, page, setPage, hasMore, sidebar
           <span className="font-medium">New Chat</span>
         </Button>
         <Button
-        onClick={()=>dispatch(SetSearching(true))}
+          onClick={() => dispatch(setSearching(true))}
           className="flex justify-center items-center gap-3 py-3"
           size="sm"
         >
@@ -64,37 +63,46 @@ export default function Sidebar({ toggleSidebar, page, setPage, hasMore, sidebar
 
       {/* Chat History */}
       <div className="flex-1 overflow-y-auto px-3 py-4 space-y-1 custom-scrollbar">
-        {chats.map((chat) => (
-          <div
-            key={chat.id}
-            onClick={() => navigate(`/chat/${chat._id}`)}
-            className={`group relative flex items-center justify-between px-4 py-3.5 my-1 rounded-xl cursor-pointer transition-all duration-200 ${chat._id == chatID
-              ? 'bg-gradient-to-r from-orange-600/20 to-orange-600/5 border-l-4 border-l-orange-500'
-              : 'hover:bg-neutral-800/50 border-l-4 border-l-transparent hover:border-l-neutral-600'
-              }`}
-          >
-            <div className="flex items-center gap-3 truncate flex-1">
-              <div className={`p-1.5 rounded-lg ${chat._id == chatID ? 'bg-orange-500/20' : 'bg-neutral-800/50 group-hover:bg-neutral-700/50'
-                } transition-colors duration-200`}>
-                <MessageCircle size={16} className={chat._id == chatID ? 'text-orange-400' : 'text-neutral-400'} />
-              </div>
-              <span className={`text-sm font-medium truncate ${chat._id == chatID ? 'text-white' : 'text-neutral-300'
-                }`}>
-                {chat.title}
-              </span>
-            </div>
+        {chatOrder
+          .filter(chatId => !chatId.startsWith("temp"))
+          .map((chatId) => {
 
-            {/* Action Buttons */}
-            <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-all duration-200 ml-2">
-              <button
-                onClick={(e) => deleteChat(chat._id, e)}
-                className="p-1.5 hover:bg-red-500/20 rounded-lg transition-colors duration-200 text-neutral-400 hover:text-red-400"
+            const chat = chats[chatId];
+            return (
+              <div
+                key={chat.id}
+                onClick={() => {
+                  dispatch(setActiveChat(chatId));
+                  navigate(`/chat/${chatId}`);
+                }}
+                className={`group relative flex items-center justify-between px-4 py-3.5 my-1 rounded-xl cursor-pointer transition-all duration-200 ${chatId === activeChatId
+                  ? 'bg-gradient-to-r from-orange-600/20 to-orange-600/5 border-l-4 border-l-orange-500'
+                  : 'hover:bg-neutral-800/50 border-l-4 border-l-transparent hover:border-l-neutral-600'
+                  }`}
               >
-                <Trash2 size={14} />
-              </button>
-            </div>
-          </div>
-        ))}
+                <div className="flex items-center gap-3 truncate flex-1">
+                  <div className={`p-1.5 rounded-lg ${chatId === activeChatId ? 'bg-orange-500/20' : 'bg-neutral-800/50 group-hover:bg-neutral-700/50'
+                    } transition-colors duration-200`}>
+                    <MessageCircle size={16} className={chatId === activeChatId ? 'text-orange-400' : 'text-neutral-400'} />
+                  </div>
+                  <span className={`text-sm font-medium truncate ${chatId === activeChatId ? 'text-white' : 'text-neutral-300'
+                    }`}>
+                    {chat.title}
+                  </span>
+                </div>
+
+                {/* Action Buttons */}
+                <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-all duration-200 ml-2">
+                  <button
+                    onClick={(e) => deleteChat(chatId, e)}
+                    className="p-1.5 hover:bg-red-500/20 rounded-lg transition-colors duration-200 text-neutral-400 hover:text-red-400"
+                  >
+                    <Trash2 size={14} />
+                  </button>
+                </div>
+              </div>
+            )
+          })}
 
         {hasMore && <>
           <button onClick={() => setPage(page + 1)}
