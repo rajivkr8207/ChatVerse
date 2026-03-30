@@ -188,3 +188,41 @@ export const UserChangePassword = asyncHandler(async (req, res) => {
 
 })
 
+export const forgetPasswordRequest = asyncHandler(async (req, res) => {
+    const { email } = req.body;
+    if (!email) {
+        throw new ApiError(400, "Email is required");
+    }
+    const user = await authService.findByEmail(email);
+    if (!user) {
+        throw new ApiError(404, "User not found");
+    }
+    const { token, tokenExpire } = generateVerificationToken();
+    await authService.setForgotPasswordToken(user._id, token, tokenExpire)
+    const resetLink = `${config.FRONTEND_URL}/reset-password/${token}`;
+    sendVerificationEmail(email, user.fullName, resetLink, "Reset Your Password")
+    return res
+        .status(200)
+        .json(
+            new ApiResponse(200, null, "Password reset link sent to email")
+        );
+})
+
+export const forgetPasswordverifyController = asyncHandler(async (req, res) => {
+    const { token } = req.params;
+    const { newPassword } = req.body;
+    if (!token) {
+        throw new ApiError(400, "Forgot password token is required");
+    }
+    const user = await authService.FindUserForgotPasswordToken(token)
+    if (!user) {
+        throw new ApiError(400, "Invalid or expired forgot password token");
+    }
+    if (!newPassword) {
+        throw new ApiError(400, "New password is required");
+    }
+    await authService.resetPassword(user._id, newPassword);
+    return res.status(200).json(
+        new ApiResponse(200, { userId: user._id }, "Password reset successfully")
+    );
+});

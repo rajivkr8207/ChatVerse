@@ -49,6 +49,10 @@ export const Router = createBrowserRouter([
         element: <Login />
     },
     {
+        path: "/forgot-password",
+        element: <ForgotPassword />
+    },
+    {
         path: "/register",
         element: <Register />
     },

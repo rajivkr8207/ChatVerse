@@ -1,0 +1,47 @@
+@import "tailwindcss";
+
+:root {
+  /* Primary Colors */
+  --primary: #6366f1;        /* Indigo - main brand color */
+  --primary-light: #818cf8;
+  --primary-dark: #4f46e5;
+  
+  /* Background Colors */
+  --bg-primary: #ffffff;
+  --bg-secondary: #f9fafb;
+  --bg-tertiary: #f3f4f6;
+  
+  /* Text Colors */
+  --text-primary: #111827;    /* Almost black for primary text */
+  --text-secondary: #4b5563;   /* Gray for secondary text */
+  --text-tertiary: #9ca3af;    /* Light gray for hints */
+  
+  /* Accent Colors */
+  --accent-success: #10b981;   /* Emerald green */
+  --accent-warning: #f59e0b;   /* Amber */
+  --accent-error: #ef4444;     /* Red */
+  --accent-info: #3b82f6;      /* Blue */
+  
+  /* UI Elements */
+  --border-color: #e5e7eb;
+  --card-bg: #ffffff;
+  --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  
+  /* Code Blocks */
+  --code-bg: #f1f5f9;
+  --code-text: #1e293b;
+  
+  /* Sidebar */
+  --sidebar-bg: #fafafa;
+  --sidebar-hover: #f1f5f9;
+  --sidebar-border: #e2e8f0;
+  
+  /* Input Fields */
+  --input-bg: #ffffff;
+  --input-border: #d1d5db;
+  --input-focus: #6366f1;
+  
+  /* Source Cards */
+  --source-bg: #f8fafc;
+  --source-border: #e2e8f0;
+}

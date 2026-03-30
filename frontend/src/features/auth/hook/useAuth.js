@@ -1,6 +1,6 @@
 import { useDispatch } from "react-redux"
 import { setError, setLoading, setUser } from "../auth.slice"
-import { LoginUser, RegisterUser, UserChangePassowrd, UserGetMe, Userlogout, UserProfie, VerifyEmailSendAgain } from "../services/auth.service"
+import { ForgotPassword, ForgotPasswordVerify, LoginUser, RegisterUser, UserChangePassowrd, UserGetMe, Userlogout, UserProfie, VerifyEmailSendAgain } from "../services/auth.service"
 import { toast } from "react-toastify"
 import { useState } from "react"
 
@@ -108,6 +108,38 @@ const useAuth = () => {
         }
     }
 
+    const handleForgotPassword = async (email) => {
+        try {
+            const res = await ForgotPassword({ email })
+            console.log(res)
+            return res
+        } catch (error) {
+            const message =
+                error?.response?.data?.message ||
+                error.message ||
+                "Something went wrong";
+
+            toast.error(message);
+            dispatch(setError(message));
+            console.error(error);
+        }
+    }
+    const handleForgotPasswordVerify = async (token, { newPassword }) => {
+        try {
+            const res = await ForgotPasswordVerify(token, { newPassword })
+            console.log(res)
+            return res
+        } catch (error) {
+            const message =
+                error?.response?.data?.message ||
+                error.message ||
+                "Something went wrong";
+
+            toast.error(message);
+            dispatch(setError(message));
+            console.error(error);
+        }
+    }
     const handleEmailSendAgian = async (email) => {
         try {
             const res = await VerifyEmailSendAgain(email);
@@ -126,7 +158,7 @@ const useAuth = () => {
             console.error(error);
         }
     };
-    return { handleRegister, handleEmailSendAgian, handlelogout, handleLogin, handleGetme, handleProfile, handleChangePassword, userdata, setUserdata }
+    return { handleRegister, handleForgotPassword,handleForgotPasswordVerify, handleEmailSendAgian, handlelogout, handleLogin, handleGetme, handleProfile, handleChangePassword, userdata, setUserdata }
 }
 
 export default useAuth

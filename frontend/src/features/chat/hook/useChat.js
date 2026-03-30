@@ -35,15 +35,11 @@ const useChat = () => {
     const [hasMore, setHasMore] = useState(true);
     const [loadingMore, setLoadingMore] = useState(false);
 
-    // ✅ pagination
     useEffect(() => {
         if (!hasMore) return;
         handleGetAllChat();
     }, [page]);
 
-    // =========================
-    // ✅ SEND MESSAGE (API)
-    // =========================
     const handleSendMessageApi = async (data) => {
         const chatId = activeChatId;
 

@@ -46,9 +46,18 @@ let messages = [
     }
 ]
 
-export async function ChatGeminimessage(msg) {
-    // messages.push(new HumanMessage(msg))
 
+
+
+
+
+
+
+
+
+
+
+export async function ChatGeminimessage(msg) {
     const res = await mistralmodel.invoke(msg.map(msg => {
         if (msg.role == "user") {
             return new HumanMessage(msg.content)
@@ -58,14 +67,6 @@ export async function ChatGeminimessage(msg) {
     }));
     return res.text
 }
-// export async function ChatGeminimessage(messages) {
-//     const res = await mistralmodel.invoke(messages);
-//     return res.text
-// }
-
-
-
-
 
 export async function GenrateMessageTilte(text) {
     const res = await mistralmodel.invoke([

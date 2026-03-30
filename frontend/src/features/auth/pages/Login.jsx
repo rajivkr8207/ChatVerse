@@ -64,6 +64,11 @@ export default function Login() {
                             required
                         />
                     </div>
+                    <p className="text-sm text-orange-500">
+                        <Link to="/forgot-password" className="cursor-pointer">
+                            Forgot Password?
+                        </Link>
+                    </p>
                     <Button
                         type="submit"
                         disabled={loading}

@@ -106,7 +106,12 @@ class AuthService {
             { new: true }
         );
     }
-
+    async FindUserForgotPasswordToken(token) {
+        return await UserModel.findOne({
+            forgotPasswordToken: token,
+            forgotPasswordTokenExpire: { $gt: Date.now() }
+        });
+    }
     // block user
     async blockUser(userId) {
         return await UserModel.findByIdAndUpdate(

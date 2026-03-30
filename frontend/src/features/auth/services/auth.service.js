@@ -45,3 +45,14 @@ export async function Userlogout() {
     const res = await api.get('/auth/logout')
     return res.data
 }
+
+export async function ForgotPassword(data) {
+    const res = await api.post('/auth/forgot-password', data)
+    return res.data
+}
+
+
+export async function ForgotPasswordVerify(token, { newPassword }) {
+    const res = await api.post(`/auth/reset-password/${token}`, { newPassword })
+    return res.data
+}
