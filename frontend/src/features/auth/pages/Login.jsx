@@ -62,6 +62,8 @@ export default function Login() {
                             onChange={handleChange}
                             className="w-full p-3 rounded-lg bg-neutral-700 border border-neutral-600 focus:outline-none focus:border-orange-500"
                             required
+                            autoComplete="off"
+
                         />
                     </div>
                     <p className="text-sm text-orange-500">

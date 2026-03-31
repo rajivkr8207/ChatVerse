@@ -4,6 +4,8 @@ import {
   Send,
   Share,
   X,
+  File,
+  FilePlusCorner,
 } from 'lucide-react';
 import Sidebar from '../components/SideNavbar';
 import useChat from '../hook/useChat';
@@ -23,6 +25,7 @@ import ShareChat from '../components/ShareChat'
 const Dashboard = () => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [darkMode, setDarkMode] = useState(false);
+  const [selectedFile, setSelectedFile] = useState(null);
   const navigate = useNavigate()
   const dispatch = useDispatch()
   const location = useLocation();
@@ -171,12 +174,16 @@ const Dashboard = () => {
               What do you want to know?
             </h1>
           }
-          <form onSubmit={handleSendMessage} className="flex gap-3 max-w-4xl mx-auto">
+          <form onSubmit={handleSendMessage} className="flex items-center px-5 py-3 gap-3 max-w-4xl border mx-auto border-neutral-200 dark:border-neutral-700 rounded-2xl focus:outline-none focus:ring-2 focus:ring-orange-500/50 bg-white dark:bg-neutral-800 text-neutral-800 dark:text-white placeholder-neutral-400 dark:placeholder-neutral-500 text-[15px] transition-all duration-200">
+            <label htmlFor="file-input" className="cursor-pointer">
+              <FilePlusCorner size={18} />
+            </label>
+            <input type="file" id="file-input" accept="application/pdf" className="hidden" onChange={(e) => setSelectedFile(e.target.files[0])} />
             <input
               type="text"
               ref={inputRef}
               placeholder="Message AI Assistant..."
-              className="flex-1 px-5 py-3 border border-neutral-200 dark:border-neutral-700 rounded-2xl focus:outline-none focus:ring-2 focus:ring-orange-500/50 bg-white dark:bg-neutral-800 text-neutral-800 dark:text-white placeholder-neutral-400 dark:placeholder-neutral-500 text-[15px] transition-all duration-200"
+              className="flex-1 outline-none"
             />
             <button
               type="submit"
@@ -189,6 +196,15 @@ const Dashboard = () => {
               </span>
             </button>
           </form>
+          {selectedFile && (
+            <div className="mt-4 max-w-xl relative mx-auto bg-white dark:bg-neutral-800 rounded-lg p-4 border border-neutral-200 dark:border-neutral-700">
+              <div onClick={() => setSelectedFile(null)} className='w-8 h-8 bg-neutral-600 text-white absolute top-3 right-3 flex justify-center items-center rounded-full '>
+                <X />
+              </div>
+              <p className="text-sm text-neutral-600 dark:text-neutral-400 mb-2">Selected file: {selectedFile.name}</p>
+              <embed src={URL.createObjectURL(selectedFile)} width="100%" height="100" type="application/pdf" />
+            </div>
+          )}
           {/* Suggestions */}
           {pathname == '/' &&
             <div className="mt-6 flex flex-wrap justify-center gap-3">

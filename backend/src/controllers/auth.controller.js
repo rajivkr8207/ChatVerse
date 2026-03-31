@@ -1,12 +1,12 @@
 import config from "../config/config.js";
 import { generateVerificationToken } from "../helpers/genrateToken.js";
 import { authService } from "../services/auth.service.js";
-import { sendVerificationEmail } from "../services/email.service.js";
+import { sendForgotPasswordEmail, sendVerificationEmail } from "../services/email.service.js";
 import { ApiError } from "../utils/api-error.js";
 import { ApiResponse } from "../utils/api-response.js";
 import { asyncHandler } from "../utils/async-handler.js";
 import { genrateJWTtoken } from "../helpers/genrateJWTtoken.js"
-
+import bcrypt from "bcrypt";
 
 export const registerUser = asyncHandler(async (req, res) => {
     const { fullName, username, email, password } = req.body;
@@ -190,6 +190,7 @@ export const UserChangePassword = asyncHandler(async (req, res) => {
 
 export const forgetPasswordRequest = asyncHandler(async (req, res) => {
     const { email } = req.body;
+    console.log(req.body);
     if (!email) {
         throw new ApiError(400, "Email is required");
     }
@@ -200,7 +201,7 @@ export const forgetPasswordRequest = asyncHandler(async (req, res) => {
     const { token, tokenExpire } = generateVerificationToken();
     await authService.setForgotPasswordToken(user._id, token, tokenExpire)
     const resetLink = `${config.FRONTEND_URL}/reset-password/${token}`;
-    sendVerificationEmail(email, user.fullName, resetLink, "Reset Your Password")
+    sendForgotPasswordEmail(email, user.fullName, resetLink)
     return res
         .status(200)
         .json(
@@ -221,7 +222,12 @@ export const forgetPasswordverifyController = asyncHandler(async (req, res) => {
     if (!newPassword) {
         throw new ApiError(400, "New password is required");
     }
-    await authService.resetPassword(user._id, newPassword);
+    const isSamePassword = await user.comparePassword(newPassword)
+    if (isSamePassword) {
+        throw new ApiError(400, "New password must be different from the old password");
+    }
+    const genpassword = await bcrypt.hash(newPassword, 10)
+    await authService.resetPassword(user._id, genpassword);
     return res.status(200).json(
         new ApiResponse(200, { userId: user._id }, "Password reset successfully")
     );

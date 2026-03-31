@@ -110,8 +110,8 @@ const useAuth = () => {
 
     const handleForgotPassword = async (email) => {
         try {
-            const res = await ForgotPassword({ email })
-            console.log(res)
+            const res = await ForgotPassword({ email: email })
+            toast.success(res.message)
             return res
         } catch (error) {
             const message =
@@ -127,7 +127,7 @@ const useAuth = () => {
     const handleForgotPasswordVerify = async (token, { newPassword }) => {
         try {
             const res = await ForgotPasswordVerify(token, { newPassword })
-            console.log(res)
+            toast.success(res.message)
             return res
         } catch (error) {
             const message =
@@ -158,7 +158,7 @@ const useAuth = () => {
             console.error(error);
         }
     };
-    return { handleRegister, handleForgotPassword,handleForgotPasswordVerify, handleEmailSendAgian, handlelogout, handleLogin, handleGetme, handleProfile, handleChangePassword, userdata, setUserdata }
+    return { handleRegister, handleForgotPassword, handleForgotPasswordVerify, handleEmailSendAgian, handlelogout, handleLogin, handleGetme, handleProfile, handleChangePassword, userdata, setUserdata }
 }
 
 export default useAuth

@@ -41,3 +41,40 @@ export const sendVerificationEmail = async (email, name, verifyLink) => {
         html
     });
 };
+
+export const sendForgotPasswordEmail = async (email, name, resetLink) => {
+    
+    const html = `
+    <div style="font-family: Arial; padding:20px">
+      
+  
+      <a href="${resetLink}" 
+         style="
+         display:inline-block;
+         padding:12px 24px;
+         background:#4CAF50;
+         color:white;
+         text-decoration:none;
+         border-radius:6px;
+         font-weight:bold;
+         ">
+         Reset Password
+      </a>
+  
+      <p style="margin-top:5px">
+        ${resetLink}
+      </p>
+      <p style="margin-top:20px">
+        If you did not create this account, please ignore this email.
+      </p>
+  
+    </div>
+    `;
+
+    await MailTranspoter.sendMail({
+        from: `${config.MAIL_EMAIL}`,
+        to: email,
+        subject: "Forgot your password",
+        html
+    });
+};

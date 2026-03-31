@@ -1,9 +1,10 @@
 import { io } from "socket.io-client";
+import ENV from "../../../config/env";
 
 
 export const initializeSocketconnection = ()=>{
 
-    const socket = io('http://localhost:8000', {
+    const socket = io(ENV.API_BACKEND_URL, {
         withCredentials: true
     })
 

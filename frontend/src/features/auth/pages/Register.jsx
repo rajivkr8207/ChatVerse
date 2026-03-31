@@ -60,6 +60,8 @@ export default function Register() {
               onChange={handleChange}
               className="w-full p-3 rounded-lg bg-neutral-700 border border-neutral-600 focus:outline-none focus:border-orange-500"
               required
+              autoComplete="off"
+
             />
           </div>
 
@@ -73,6 +75,8 @@ export default function Register() {
               onChange={handleChange}
               className="w-full p-3 rounded-lg bg-neutral-700 border border-neutral-600 focus:outline-none focus:border-orange-500"
               required
+              autoComplete="off"
+
             />
           </div>
 
@@ -86,6 +90,8 @@ export default function Register() {
               onChange={handleChange}
               className="w-full p-3 rounded-lg bg-neutral-700 border border-neutral-600 focus:outline-none focus:border-orange-500"
               required
+              autoComplete="off"
+
             />
           </div>
 
@@ -99,6 +105,8 @@ export default function Register() {
               onChange={handleChange}
               className="w-full p-3 rounded-lg bg-neutral-700 border border-neutral-600 focus:outline-none focus:border-orange-500"
               required
+              autoComplete="off"
+
             />
           </div>
           <div>
@@ -111,6 +119,8 @@ export default function Register() {
               onChange={handleChange}
               className="w-full p-3 rounded-lg bg-neutral-700 border border-neutral-600 focus:outline-none focus:border-orange-500"
               required
+              autoComplete="off"
+
             />
           </div>
           <Button

@@ -14,7 +14,7 @@ AuthRouter.get('/profile', verifyUser, getUserProfile)
 AuthRouter.get('/get-me', verifyUser, get_me)
 AuthRouter.get('/logout', verifyUser, LogoutUser)
 AuthRouter.patch("/change-password", verifyUser, UserChangePassword);
-AuthRouter.post('/forgot-password', forgetPasswordRequest)
+AuthRouter.put('/forgot/password', forgetPasswordRequest)
 AuthRouter.post('/reset-password/:token', forgetPasswordverifyController)
 
 export default AuthRouter

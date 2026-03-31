@@ -9,6 +9,8 @@ import Chat from "../features/chat/pages/Chat"
 import VerifyEmail from "../features/auth/pages/VerifyEmail"
 import ResendVerifyMail from "../features/auth/pages/ResendVerifyMail"
 import SharingChat from "../features/chat/pages/SharingChat"
+import ForgotPassword from "../features/auth/pages/ForgotPassword"
+import VerifyForgotPassword from "../features/auth/pages/VerifyForgotPassword"
 
 export const Router = createBrowserRouter([
     {
@@ -51,6 +53,10 @@ export const Router = createBrowserRouter([
     {
         path: "/forgot-password",
         element: <ForgotPassword />
+    },
+       {
+        path: "/reset-password/:token",
+        element: <VerifyForgotPassword />
     },
     {
         path: "/register",

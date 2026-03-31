@@ -14,6 +14,7 @@ const config = {
     JWT_SECRET: process.env.JWT_SECRET,
     MISTRAL_API_KEY: process.env.MISTRAL_API_KEY,
     TAVILY_KEY: process.env.TAVILY_KEY,
+    PINE_CODE: process.env.PINE_CODE
 }
 
 export default config
