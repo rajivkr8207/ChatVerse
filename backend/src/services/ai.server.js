@@ -29,7 +29,6 @@ export const webSearchTool = tool(
 
 const mistralmodel = new ChatMistralAI({
     model: "mistral-small-latest",
-    temperature: 0,
     apiKey: config.MISTRAL_API_KEY
 });
 
@@ -47,7 +46,13 @@ let messages = [
 
 
 export async function ChatGeminimessage(msg) {
-    const res = await mistralmodel.invoke(msg);
+    const res = await mistralmodel.invoke(msg.map(msg => {
+        if (msg.role == "user") {
+            return new HumanMessage(msg.content)
+        } else {
+            return new AIMessage(msg.content)
+        }
+    }));
     return res.text
 }
 

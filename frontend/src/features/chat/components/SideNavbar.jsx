@@ -15,7 +15,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import useAuth from "../../auth/hook/useAuth";
 import cvlogo from '../../../../public/cvlogo.png'
-import { setActiveChat, setSearching } from "../chat.slice";
+import { removeSharedChats, setActiveChat, setSearching } from "../chat.slice";
 import Button from "../../../components/common/Button";
 export default function Sidebar({ toggleSidebar, page, setPage, hasMore, sidebarOpen, darkMode, startNewChat, deleteChat, toggleDarkMode }) {
   const activeChatId = useSelector(state => state.chat.activeChatId);
@@ -73,6 +73,7 @@ export default function Sidebar({ toggleSidebar, page, setPage, hasMore, sidebar
                 key={chat.id}
                 onClick={() => {
                   dispatch(setActiveChat(chatId));
+                  dispatch(removeSharedChats());
                   navigate(`/chat/${chatId}`);
                 }}
                 className={`group relative flex items-center justify-between px-4 py-3.5 my-1 rounded-xl cursor-pointer transition-all duration-200 ${chatId === activeChatId
@@ -127,7 +128,7 @@ export default function Sidebar({ toggleSidebar, page, setPage, hasMore, sidebar
         </div>
 
         {/* Settings */}
-        <div className="mb-2 px-3 py-2.5 hover:bg-neutral-800/70 rounded-xl transition-all duration-200 cursor-pointer group">
+        {/* <div className="mb-2 px-3 py-2.5 hover:bg-neutral-800/70 rounded-xl transition-all duration-200 cursor-pointer group">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-gradient-to-br from-neutral-700 to-neutral-800 rounded-xl group-hover:rotate-90 transition-transform duration-200">
               <Settings size={18} className="text-neutral-300" />
@@ -137,10 +138,10 @@ export default function Sidebar({ toggleSidebar, page, setPage, hasMore, sidebar
               <span className="text-xs text-neutral-500">Preferences</span>
             </div>
           </div>
-        </div>
+        </div> */}
 
         {/* Theme Toggle */}
-        <div className="mb-2 px-3 py-2.5 hover:bg-neutral-800/70 rounded-xl transition-all duration-200 cursor-pointer group">
+        {/* <div className="mb-2 px-3 py-2.5 hover:bg-neutral-800/70 rounded-xl transition-all duration-200 cursor-pointer group">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <button
@@ -158,7 +159,7 @@ export default function Sidebar({ toggleSidebar, page, setPage, hasMore, sidebar
               {darkMode ? 'Dark' : 'Light'}
             </div>
           </div>
-        </div>
+        </div> */}
 
         {/* Logout */}
         <div onClick={() => { handlelogout() }} className="mt-4 px-3 py-2.5  hover:bg-red-500/10 rounded-xl transition-all duration-200 cursor-pointer group">

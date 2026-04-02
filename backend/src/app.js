@@ -17,15 +17,16 @@ app.use(cors({
     origin: [config.CORSORIGIN1, config.CORSORIGIN2],
     credentials: true
 }))
-app.use(express.static('./public'))
-
-
+app.use(express.static('./public/dist'))
 
 app.get('/health', (req, res) => {
     return res.status(200).json({
         message: "your server health is Correct correctly"
     })
 })
+
+
+
 app.use('/api/auth', AuthRouter)
 app.use("/api/chat", ChatRouter);
 

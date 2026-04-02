@@ -174,28 +174,31 @@ const Dashboard = () => {
               What do you want to know?
             </h1>
           }
-          <form onSubmit={handleSendMessage} className="flex items-center px-5 py-3 gap-3 max-w-4xl border mx-auto border-neutral-200 dark:border-neutral-700 rounded-2xl focus:outline-none focus:ring-2 focus:ring-orange-500/50 bg-white dark:bg-neutral-800 text-neutral-800 dark:text-white placeholder-neutral-400 dark:placeholder-neutral-500 text-[15px] transition-all duration-200">
-            <label htmlFor="file-input" className="cursor-pointer">
+          { pathid != "share" &&
+            <form onSubmit={handleSendMessage} className="flex items-center px-5 py-3 gap-3 max-w-4xl border mx-auto border-neutral-200 dark:border-neutral-700 rounded-2xl focus:outline-none focus:ring-2 focus:ring-orange-500/50 bg-white dark:bg-neutral-800 text-neutral-800 dark:text-white placeholder-neutral-400 dark:placeholder-neutral-500 text-[15px] transition-all duration-200">
+              {/* <label htmlFor="file-input" className="cursor-pointer">
               <FilePlusCorner size={18} />
             </label>
-            <input type="file" id="file-input" accept="application/pdf" className="hidden" onChange={(e) => setSelectedFile(e.target.files[0])} />
-            <input
-              type="text"
-              ref={inputRef}
-              placeholder="Message AI Assistant..."
-              className="flex-1 outline-none"
-            />
-            <button
-              type="submit"
-              disabled={typing}
-              className="px-6 py-3 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white rounded-2xl transition-all duration-200 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm hover:shadow-md"
-            >
-              <Send size={18} />
-              <span className="font-medium">
-                {typing ? 'proccessing...' : 'Send'}
-              </span>
-            </button>
-          </form>
+            <input type="file" id="file-input" accept="application/pdf" className="hidden" onChange={(e) => setSelectedFile(e.target.files[0])} /> */}
+              <input
+                type="text"
+                ref={inputRef}
+                placeholder="Message AI Assistant..."
+                className="flex-1 outline-none"
+              />
+              <button
+                type="submit"
+                disabled={typing}
+                className="px-6 py-3 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white rounded-2xl transition-all duration-200 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm hover:shadow-md"
+              >
+                <Send size={18} />
+                <span className="font-medium">
+                  {typing ? 'proccessing...' : 'Send'}
+                </span>
+              </button>
+            </form>
+          }
+
           {selectedFile && (
             <div className="mt-4 max-w-xl relative mx-auto bg-white dark:bg-neutral-800 rounded-lg p-4 border border-neutral-200 dark:border-neutral-700">
               <div onClick={() => setSelectedFile(null)} className='w-8 h-8 bg-neutral-600 text-white absolute top-3 right-3 flex justify-center items-center rounded-full '>

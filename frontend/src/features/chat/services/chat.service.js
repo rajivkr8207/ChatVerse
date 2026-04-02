@@ -31,7 +31,7 @@ export async function SearchChat(search) {
 }
 
 export async function ShareChatApi(chatid) {
-    const res = await api.post(api`/chat/share/${chatid}`)
+    const res = await api.post(`api/chat/share/${chatid}`)
     return res.data
 }
 

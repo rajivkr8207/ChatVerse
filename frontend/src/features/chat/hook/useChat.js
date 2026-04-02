@@ -155,7 +155,6 @@ const useChat = () => {
     const handleGetShareChat = async (shareid) => {
         try {
             const res = await GetShareChatApi(shareid);
-
             const tempChatId = `share-${Date.now()}`;
 
             dispatch(addNewChat({

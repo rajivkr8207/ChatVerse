@@ -86,7 +86,6 @@ const Chat = () => {
     };
   }, [chats]);
 
-  // ✅ auto scroll
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "auto" });
   }, [messages]);
@@ -94,24 +93,22 @@ const Chat = () => {
   return (
     <div className="flex-1 overflow-y-auto p-6 space-y-6 scroll-smooth">
       {messages
-        .filter(msg => msg && msg.content)   // 🔥 IMPORTANT
+        .filter(msg => msg && msg.content)
         .map((msg) => {
           const role = msg?.role || "ai";
-
           return (
             <div
               key={msg._id || `${role}-${msg.content}`}
               className={`flex ${role === 'user' ? 'justify-end' : 'justify-start'}`}
             >
               <div
-                className={`max-w-[80%] lg:max-w-[70%] rounded-2xl p-4 ${role === 'user'
+                className={`max-w-[80%] lg:max-w-[70%] rounded-2xl text-lg p-4 ${role === 'user'
                   ? 'bg-gradient-to-r from-orange-500 to-orange-600 text-white'
-                  : 'bg-white dark:bg-neutral-800 text-neutral-800 dark:text-neutral-100 border'
+                  : 'bg-white dark:bg-neutral-800 text-neutral-800 dark:text-neutral-100 border '
                   }`}
               >
-
                 {role === 'ai' && (
-                  <div className="flex items-center gap-2 mb-2">
+                  <div className="flex items-center text-orange-400 gap-2 mb-2">
                     <MessageCircle size={14} />
                     <span className="text-xs">AI Assistant</span>
                   </div>
