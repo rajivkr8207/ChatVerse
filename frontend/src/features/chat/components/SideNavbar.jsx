@@ -15,9 +15,9 @@ import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import useAuth from "../../auth/hook/useAuth";
 import cvlogo from '../../../../public/cvlogo.png'
-import { removeSharedChats, setActiveChat, setSearching } from "../chat.slice";
+import { setActiveChat, setSearching } from "../chat.slice";
 import Button from "../../../components/common/Button";
-export default function Sidebar({ toggleSidebar, page, setPage, hasMore, sidebarOpen, darkMode, startNewChat, deleteChat, toggleDarkMode }) {
+export default function Sidebar({ toggleSidebar, page, setPage, hasMore, sidebarOpen, startNewChat, deleteChat }) {
   const activeChatId = useSelector(state => state.chat.activeChatId);
   const chats = useSelector(state => state.chat.chats);
   const chatOrder = useSelector(state => state.chat.chatOrder);
