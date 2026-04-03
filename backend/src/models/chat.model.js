@@ -17,6 +17,11 @@ const chatSchema = new mongoose.Schema(
             type: Boolean,
             default: false
         },
+        activeDocumentId: {
+            type: String,
+            default: "null",
+            trim: true,
+        },
         shareId: { type: String, unique: true, sparse: true },
     },
     {

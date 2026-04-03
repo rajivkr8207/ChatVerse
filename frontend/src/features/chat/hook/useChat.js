@@ -155,20 +155,6 @@ const useChat = () => {
     const handleGetShareChat = async (shareid) => {
         try {
             const res = await GetShareChatApi(shareid);
-            const tempChatId = `share-${Date.now()}`;
-
-            dispatch(addNewChat({
-                _id: tempChatId,
-                title: "Shared Chat"
-            }));
-
-            dispatch(setMessages({
-                chatId: tempChatId,
-                messages: res.data
-            }));
-
-            dispatch(setActiveChat(tempChatId));
-
             return res;
 
         } catch (error) {

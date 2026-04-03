@@ -126,23 +126,6 @@ const chatSlice = createSlice({
                 state.activeChatId = null;
             }
         },
-        removeSharedChats: (state) => {
-            const newChats = {};
-            const newOrder = [];
-
-            Object.keys(state.chats).forEach(id => {
-                if (state.chats[id].title !== "Shared Chat") {
-                    newChats[id] = state.chats[id];
-                    newOrder.push(id);
-                }
-            });
-            state.chats = newChats;
-            state.chatOrder = newOrder;
-
-            if (state.activeChatId && !newChats[state.activeChatId]) {
-                state.activeChatId = null;
-            }
-        }
     }
 });
 
@@ -160,7 +143,6 @@ export const {
     removeChat,
     removeAllTempChats,
     setSharing,
-    removeSharedChats
 } = chatSlice.actions;
 
 export default chatSlice.reducer;
