@@ -67,6 +67,7 @@ const Dashboard = () => {
     const tempChatId = activeChatId || `temp-${Date.now()}`;
     const isNewChat = !activeChatId;
     const data = {
+      file: selectedFile,
       message: value,
       chatid: activeChatId || null,
       userid: userid.id
@@ -85,6 +86,7 @@ const Dashboard = () => {
     dispatch(addMessage({
       chatId: tempChatId,
       message: {
+        file: selectedFile,
         _id: Date.now(),
         role: "user",
         content: value
@@ -174,12 +176,12 @@ const Dashboard = () => {
               What do you want to know?
             </h1>
           }
-          { pathid != "share" &&
+          {pathid != "share" &&
             <form onSubmit={handleSendMessage} className="flex items-center px-5 py-3 gap-3 max-w-4xl border mx-auto border-neutral-200 dark:border-neutral-700 rounded-2xl focus:outline-none focus:ring-2 focus:ring-orange-500/50 bg-white dark:bg-neutral-800 text-neutral-800 dark:text-white placeholder-neutral-400 dark:placeholder-neutral-500 text-[15px] transition-all duration-200">
-              {/* <label htmlFor="file-input" className="cursor-pointer">
-              <FilePlusCorner size={18} />
-            </label>
-            <input type="file" id="file-input" accept="application/pdf" className="hidden" onChange={(e) => setSelectedFile(e.target.files[0])} /> */}
+              <label htmlFor="file-input" className="cursor-pointer">
+                <FilePlusCorner size={18} />
+              </label>
+              <input type="file" id="file-input" accept="application/pdf" className="hidden" onChange={(e) => setSelectedFile(e.target.files[0])} />
               <input
                 type="text"
                 ref={inputRef}

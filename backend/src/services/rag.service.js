@@ -1,8 +1,7 @@
 import { Pinecone } from '@pinecone-database/pinecone';
 import config from '../config/config.js';
-import { RecursiveCharacterTextSplitter } from "langchain/text_splitter";
+import { RecursiveCharacterTextSplitter } from "@langchain/textsplitters";
 import { PDFParse } from 'pdf-parse';
-import fs from "fs";
 import { MistralAIEmbeddings } from '@langchain/mistralai';
 
 
@@ -18,21 +17,21 @@ export const index = pc.index('chatverse');
 
 
 
-export const parsePDF = async (filePath) => {
-    const dataBuffer = fs.readFileSync(filePath);
+export const parsePDF = async (buffer) => {
     const parser = new PDFParse({
-        data: dataBuffer
+        data: buffer
     })
     const datatext = await parser.getText()
     return datatext.text;
 };
 
-export const createEmbeddings = async (filePath, userid, docId) => {
+export const createEmbeddings = async (filebuffer, userid, docId) => {
     const splitter = new RecursiveCharacterTextSplitter({
-        chunkSize: 300,
+        chunkSize: 500,
         chunkOverlap: 200,
     });
-    const chunks = await splitter.splitText(parsePDF(filePath));
+    const text = await parsePDF(filebuffer)
+    const chunks = await splitter.splitText(text);
     const docs = await Promise.all(chunks.map(async (chunk) => {
         const embedding = await embeddings.embedQuery(chunk)
         return {
@@ -55,14 +54,25 @@ export const createEmbeddings = async (filePath, userid, docId) => {
     return "done"
 }
 
-export async function queryEmbeddings(query) {
+export async function queryEmbeddings(query, docId, userId) {
     const queryEmbedding = await embeddings.embedQuery(query);
+
     const res = await index.query({
-        queryRequest: {
-            topK: 2,
-            vector: queryEmbedding,
-            includeMetadata: true
+        topK: 5,
+        vector: queryEmbedding,
+        includeMetadata: true,
+        filter: {
+            userId: userId,
+            documentId: docId
         }
-    })
+    });
+
     return res.matches.map(match => match.metadata.text).join("\n");
+}
+
+
+export const chatRagService = async (filebuffer, docid, userid, message) => {
+    await createEmbeddings(filebuffer, userid, docid);
+    const context = await queryEmbeddings(message, docid, userid);
+    return `${context}`;
 }

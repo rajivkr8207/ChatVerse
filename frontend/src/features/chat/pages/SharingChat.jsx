@@ -1,71 +1,57 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { MessageCircle } from 'lucide-react';
 import remarkGfm from 'remark-gfm';
 import ReactMarkdown from 'react-markdown';
-import useChat from '../hook/useChat';
-import { useDispatch, useSelector } from 'react-redux';
-import {
-  addMessage,
-  setActiveChat,
-  setTyping
-} from '../chat.slice';
 import socket from '../../../lib/socket/socket';
 import TypingIndicator from '../components/TypingIndicator';
 import { useParams } from 'react-router-dom';
-
+import useChat from '../hook/useChat';
 const SharingChat = () => {
-
   const { chatid } = useParams();
-  const dispatch = useDispatch();
 
-  const chats = useSelector(state => state.chat.chats);
-  const activeChatId = useSelector(state => state.chat.activeChatId);
-
-  const messages = chats[activeChatId]?.messages || [];
-  const typing = chats[activeChatId]?.typing || false;
-
+  const [messages, setMessages] = useState([]);
+  const [typing, setTyping] = useState(false);
+  const [chatId, setChatId] = useState(null);
+  const { handleGetShareChat } = useChat();
   const messagesEndRef = useRef(null);
-  const chatIdRef = useRef(activeChatId);
-
-  const { handleGetAllChat, handleGetShareChat } = useChat();
 
   useEffect(() => {
-    chatIdRef.current = activeChatId;
-  }, [activeChatId]);
+    const fetchChat = async () => {
+      try {
+        const res = await handleGetShareChat(chatid);
+        setMessages(res.data);
+        setChatId(res.data[0].chatId);
+      } catch (err) {
+        console.error(err);
+      }
+    };
 
-  useEffect(() => {
-    if (chatid) {
-      dispatch(setActiveChat(chatid));
-      handleGetShareChat(chatid);
-    }
+    if (chatid) fetchChat();
   }, [chatid]);
 
   useEffect(() => {
-    handleGetAllChat();
-  }, []);
-
-  useEffect(() => {
-    socket.on("receive_message", (msg) => {
+    const handleReceive = (msg) => {
       const { aimesg } = msg;
-      const chatId = aimesg.chat;
 
-      if (chatId === chatIdRef.current) {
-        dispatch(addMessage({
-          chatId,
-          message: aimesg
-        }));
+      if (aimesg.chat === chatId) {
+        setMessages(prev => [...prev, aimesg]);
       }
-    });
+    };
 
-    socket.on("typing", ({ chatId, status }) => {
-      dispatch(setTyping({ chatId, typing: status }));
-    });
+    const handleTyping = ({ chatId: incomingChatId, status }) => {
+      if (incomingChatId === chatId) {
+        setTyping(status);
+      }
+    };
+
+    socket.on("receive_message", handleReceive);
+    socket.on("typing", handleTyping);
 
     return () => {
-      socket.off("receive_message");
-      socket.off("typing");
+      socket.off("receive_message", handleReceive);
+      socket.off("typing", handleTyping);
     };
-  }, []);
+  }, [chatId]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "auto" });
@@ -73,19 +59,15 @@ const SharingChat = () => {
 
   return (
     <div className="flex-1 overflow-y-auto p-6 space-y-6">
-
       {messages.map((msg) => (
         <div
-          key={msg._id || `${msg.role}-${msg.content}`}
+          key={msg._id}
           className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
         >
-          <div
-            className={`max-w-[80%] lg:max-w-[70%] rounded-2xl p-4 ${
-              msg.role === 'user'
-                ? 'bg-gradient-to-r from-orange-500 to-orange-600 text-white'
-                : 'bg-white dark:bg-neutral-800 text-neutral-800 dark:text-neutral-100 border'
-            }`}
-          >
+          <div className={`max-w-[80%] lg:max-w-[70%] rounded-2xl p-4 ${msg.role === 'user'
+              ? 'bg-orange-500 text-white'
+              : 'bg-white dark:bg-neutral-800 border text-white'
+            }`}>
 
             {msg.role === 'ai' && (
               <div className="flex items-center gap-2 mb-2">
@@ -103,13 +85,11 @@ const SharingChat = () => {
                 {msg.content}
               </ReactMarkdown>
             )}
-
           </div>
         </div>
       ))}
 
       {typing && <TypingIndicator />}
-
       <div ref={messagesEndRef} />
     </div>
   );

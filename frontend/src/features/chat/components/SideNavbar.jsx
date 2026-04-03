@@ -73,7 +73,6 @@ export default function Sidebar({ toggleSidebar, page, setPage, hasMore, sidebar
                 key={chat.id}
                 onClick={() => {
                   dispatch(setActiveChat(chatId));
-                  dispatch(removeSharedChats());
                   navigate(`/chat/${chatId}`);
                 }}
                 className={`group relative flex items-center justify-between px-4 py-3.5 my-1 rounded-xl cursor-pointer transition-all duration-200 ${chatId === activeChatId
