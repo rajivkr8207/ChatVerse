@@ -92,6 +92,7 @@ const Dashboard = () => {
         content: value
       },
     }));
+
     dispatch(setActiveChat(tempChatId));
     dispatch(setTyping({ chatId: tempChatId, typing: true }));
 
@@ -104,6 +105,9 @@ const Dashboard = () => {
         dispatch(setTyping({ chatId: chatId, typing: true }));
         dispatch(setActiveChat(chatId));
         navigate(`/chat/${chatId}`);
+        if (selectedFile) {
+          setSelectedFile(null)
+        }
         finalChatId = chatId;
       }
 
