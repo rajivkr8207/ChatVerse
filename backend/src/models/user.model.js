@@ -12,7 +12,6 @@ const userSchema = new mongoose.Schema(
 
         username: {
             type: String,
-            required: [true, "Username is required"],
             unique: true,
             trim: true,
             lowercase: true,
@@ -36,11 +35,22 @@ const userSchema = new mongoose.Schema(
 
         password: {
             type: String,
-            required: [true, "Password is required"],
             minlength: 6,
+            required: function () {
+                return !this.googleId;
+            },
             select: false,
         },
-
+        googleId: {
+            type: String,
+            unique: true,
+            sparse: true,
+        },
+        provider: {
+            type: String,
+            enum: ["email", "google"],
+            default: "email",
+        },
         isBlocked: {
             type: Boolean,
             default: false,

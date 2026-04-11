@@ -16,7 +16,9 @@ const config = {
     TAVILY_KEY: process.env.TAVILY_KEY,
     PINE_CODE: process.env.PINE_CODE,
     CORSORIGIN1: process.env.CORSORIGIN1,
-    CORSORIGIN2: process.env.CORSORIGIN2
+    CORSORIGIN2: process.env.CORSORIGIN2,
+    GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID,
+    GOOGLE_SECRET_CODE: process.env.GOOGLE_SECRET_CODE
 }
 
 export default config

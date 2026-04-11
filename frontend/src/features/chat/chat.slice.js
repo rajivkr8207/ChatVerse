@@ -19,7 +19,7 @@ const chatSlice = createSlice({
                 messages: [],
                 loading: false,
                 typing: false,
-                error: null
+                error: null,
             };
             state.chatOrder.unshift(chat._id);
         },

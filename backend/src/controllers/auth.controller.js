@@ -7,6 +7,55 @@ import { ApiResponse } from "../utils/api-response.js";
 import { asyncHandler } from "../utils/async-handler.js";
 import { genrateJWTtoken } from "../helpers/genrateJWTtoken.js"
 import bcrypt from "bcrypt";
+const cookieOptions = {
+    httpOnly: true,
+    secure: config.NODE_ENV === "production",
+    sameSite: "strict",
+    maxAge: 7 * 24 * 60 * 60 * 1000,
+};
+
+
+export const googleCallback = asyncHandler(async (req, res) => {
+    const userprofile = req.user;
+    const { displayName, emails, id } = userprofile
+
+    const email = emails[0].value
+    if (!email) {
+        throw new ApiError(400, "No email found");
+    }
+    let user = await authService.findByEmail(email);
+
+    if (!user) {
+        let username = email.split('@')[0];
+        let isTaken = true;
+        while (isTaken) {
+            const exist = await authService.findByUsername(username);
+            if (!exist) {
+                isTaken = false;
+            } else {
+                username = `${username}${Math.floor(1000 + Math.random() * 9000)}`;
+            }
+        }
+        user = await authService.createUser({
+            fullName: displayName,
+            email,
+            username,
+            googleId: id,
+            isVerified: true,
+            provider: "google"
+        });
+    }
+    const payload = {
+        id: user._id,
+        isVerified: user.isVerified,
+        provider: user.provider
+    };
+    const token = genrateJWTtoken(payload);
+    res.cookie("chatverse_token", token, cookieOptions);
+    res.redirect(`${config.FRONTEND_URL}/`)
+})
+
+
 
 export const registerUser = asyncHandler(async (req, res) => {
     const { fullName, username, email, password } = req.body;
@@ -58,11 +107,12 @@ export const loginController = asyncHandler(async (req, res) => {
 
     const payload = {
         id: user._id,
-        isVerified: user.isVerified
+        isVerified: user.isVerified,
+        provider: user.provider
     };
     const token = genrateJWTtoken(payload)
 
-    res.cookie('tokenai', token)
+    res.cookie('chatverse_token', token, cookieOptions)
 
     res.status(200).json(new ApiResponse(200, payload, "Login successful"));
 
@@ -122,6 +172,7 @@ export const getUserProfile = asyncHandler(async (req, res) => {
         email: user.email,
         username: user.username,
         _id: user._id,
+        provider: user.provider,
         createdAt: user.createdAt
     }
     return res
@@ -145,7 +196,7 @@ export const get_me = asyncHandler(async (req, res) => {
 });
 
 export const LogoutUser = asyncHandler(async (req, res) => {
-    res.clearCookie('tokenai')
+    res.clearCookie('chatverse_token')
     return res
         .status(200)
         .json(

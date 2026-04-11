@@ -4,7 +4,6 @@ import {
   Send,
   Share,
   X,
-  File,
   FilePlusCorner,
 } from 'lucide-react';
 import Sidebar from '../components/SideNavbar';
@@ -145,20 +144,20 @@ const Dashboard = () => {
   };
 
   return (
-    <div className={`h-screen flex ${darkMode ? 'dark' : ''}`}>
+    <div className={`h-screen flex overflow-hidden ${darkMode ? 'dark' : ''}`}>
       <Sidebar toggleSidebar={toggleSidebar} setPage={setPage} page={page} hasMore={hasMore} loadingMore={loadingMore} sidebarOpen={sidebarOpen} handleGetAllChat={handleGetAllChat} darkMode={darkMode} startNewChat={startNewChat} selectChat={selectChat} deleteChat={deleteChat} toggleDarkMode={toggleDarkMode} />
       {searching && <ChatSearchLanding />}
       {sharing && <ShareChat />}
-      <div className="flex-1 flex flex-col bg-gradient-to-br from-neutral-50 to-neutral-100 dark:from-neutral-900 dark:to-neutral-800">
-        <header className="border-b border-neutral-200/50 dark:border-neutral-700/50 bg-white/70 dark:bg-neutral-800/70 backdrop-blur-sm p-4 flex justify-between items-center sticky top-0 z-10">
-          <div className="flex justify-center items-center">
+      <div className="flex-1 flex flex-col bg-gradient-to-br from-neutral-50 to-neutral-100 dark:from-neutral-900 dark:to-neutral-800 h-full overflow-hidden">
+        <header className="border-b border-neutral-200/50 dark:border-neutral-700/50 bg-white/70 dark:bg-neutral-800/70 backdrop-blur-sm p-4 flex justify-between items-center sticky top-0 z-30">
+          <div className="flex items-center">
             <button
               onClick={toggleSidebar}
-              className="p-2 hover:bg-neutral-100 dark:hover:bg-neutral-700 rounded-xl transition-all duration-200 mr-4 text-neutral-600 dark:text-neutral-300 hover:text-neutral-900 dark:hover:text-white"
+              className="p-2 hover:bg-neutral-100 dark:hover:bg-neutral-700 rounded-xl transition-all duration-200 mr-4 text-neutral-600 dark:text-neutral-300"
             >
-              {!sidebarOpen && <Menu size={20} />}
+              <Menu size={20} />
             </button>
-            <p id='Fontlogo' className="text-2xl font-semibold bg-gradient-to-r from-orange-600 capitalize to-red-600 dark:from-orange-400 dark:to-red-400 bg-clip-text text-transparent">
+            <p id='Fontlogo' className="text-xl md:text-2xl font-semibold bg-gradient-to-r from-orange-600 capitalize to-red-600 dark:from-orange-400 dark:to-red-400 bg-clip-text text-transparent">
               <span className='chatlogo'>chat</span><span className='verse'>verse</span>
             </p>
           </div>

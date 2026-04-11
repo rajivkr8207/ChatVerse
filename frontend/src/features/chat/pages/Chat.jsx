@@ -14,6 +14,7 @@ import {
 import socket from '../../../lib/socket/socket';
 import TypingIndicator from '../components/TypingIndicator';
 import { useNavigate, useParams } from 'react-router-dom';
+import Typewriter from '../../../components/common/Typewriter';
 
 const Chat = () => {
 
@@ -26,7 +27,7 @@ const Chat = () => {
 
   const messages = chats[activeChatId]?.messages || [];
   const typing = chats[activeChatId]?.typing || false;
-
+  const isLatestAI = useRef(false);
   const messagesEndRef = useRef(null);
   const chatIdRef = useRef(activeChatId);
 
@@ -58,6 +59,7 @@ const Chat = () => {
       if (!chats[chatId]) {
         dispatch(addNewChat(msg.chat));
       }
+      isLatestAI.current = true;
       dispatch(addMessage({
         chatId,
         message: msg.aimesg,
@@ -70,21 +72,22 @@ const Chat = () => {
         navigate(`/chat/${chatId}`);
       }
     });
-
     socket.on("typing", ({ chatId, status }) => {
       dispatch(setTyping({ chatId, typing: status }));
     });
-
     socket.on("error", (err) => {
       console.error(err);
     });
-
     return () => {
       socket.off("receive_message");
       socket.off("typing");
       socket.off("error");
     };
   }, [chats]);
+
+  useEffect(() => {
+    isLatestAI.current = false;
+  }, [])
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "auto" });
@@ -94,11 +97,12 @@ const Chat = () => {
     <div className="flex-1 overflow-y-auto p-6 space-y-6 scroll-smooth">
       {messages
         .filter(msg => msg && msg.content)
-        .map((msg) => {
+        .map((msg, index) => {
           const role = msg?.role || "ai";
+          const isLastmsg = role === 'ai' && index === messages.length - 1;
           return (
             <div
-              key={msg._id || `${role}-${msg.content}`}
+              key={msg._id || `${role}-${msg.content}-${index}`}
               className={`flex ${role === 'user' ? 'justify-end' : 'justify-start'}`}
             >
               <div
@@ -117,9 +121,13 @@ const Chat = () => {
                 {role === 'user' ? (
                   <p>{msg.content}</p>
                 ) : (
-                  <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                    {msg.content}
-                  </ReactMarkdown>
+                  isLastmsg && isLatestAI.current ? (
+                    <Typewriter text={msg.content} onComplete={() => isLatestAI.current = false} />
+                  ) : (
+                    <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                      {msg.content}
+                    </ReactMarkdown>
+                  )
                 )}
 
               </div>
