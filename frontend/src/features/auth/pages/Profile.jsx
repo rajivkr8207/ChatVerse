@@ -49,12 +49,17 @@ export default function Profile() {
                         <span className="text-neutral-400">Joined</span>
                         <span>{userdata?.createdAt.split('T')[0]}</span>
                     </div>
-
+                    <div className="flex justify-between border-b border-neutral-700 pb-3">
+                        <span className="text-neutral-400">Login With</span>
+                        <span>{userdata?.provider}</span>
+                    </div>
                 </div>
 
                 {/* Button */}
-                <div   className="flex justify-between mt-8">
-                    <Button onClick={() => navigate('/change-password')} >change password</Button>
+                <div className="flex justify-between mt-8">
+                    {userdata?.provider === "email" && (
+                        <Button onClick={() => navigate('/change-password')} >change password</Button>
+                    )}
                     <Button onClick={() => navigate('/')} >Home</Button>
 
                 </div>
