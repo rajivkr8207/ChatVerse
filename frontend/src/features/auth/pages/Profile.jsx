@@ -1,16 +1,10 @@
-import React, { useEffect } from "react";
-import useAuth from "../hook/useAuth";
 import { useNavigate } from "react-router-dom";
 import Button from "../../../components/common/Button";
+import { useSelector } from "react-redux";
 
 export default function Profile() {
     const navigate = useNavigate()
-    const { userdata, handleProfile } = useAuth()
-
-    useEffect(() => {
-        handleProfile()
-    }, [])
-
+    const userdata = useSelector(state => state.auth.user)
 
     return (
         <div className="min-h-screen  text-white flex justify-center items-center p-6">

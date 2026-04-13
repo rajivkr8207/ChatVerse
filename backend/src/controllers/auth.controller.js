@@ -171,7 +171,7 @@ export const getUserProfile = asyncHandler(async (req, res) => {
         fullName: user.fullName,
         email: user.email,
         username: user.username,
-        _id: user._id,
+        id: user._id,
         provider: user.provider,
         createdAt: user.createdAt
     }

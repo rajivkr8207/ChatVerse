@@ -9,7 +9,6 @@ import { useState } from "react"
 const useAuth = () => {
     const dispatch = useDispatch()
     // const navigate = useNavigate()
-    const [userdata, setUserdata] = useState(null)
 
 
     const handleRegister = async ({ fullName, username, email, password }) => {
@@ -68,9 +67,11 @@ const useAuth = () => {
     const handleProfile = async () => {
         try {
             const res = await UserProfie()
-            setUserdata(res.data)
+            dispatch(setUser(res.data))
         } catch (error) {
             dispatch(setError(error.response?.data?.message || "Registeration failed"))
+        } finally {
+            dispatch(setLoading(false))
         }
     }
 
@@ -158,7 +159,7 @@ const useAuth = () => {
             console.error(error);
         }
     };
-    return { handleRegister, handleForgotPassword, handleForgotPasswordVerify, handleEmailSendAgian, handlelogout, handleLogin, handleGetme, handleProfile, handleChangePassword, userdata, setUserdata }
+    return { handleRegister, handleForgotPassword, handleForgotPasswordVerify, handleEmailSendAgian, handlelogout, handleLogin, handleGetme, handleProfile, handleChangePassword }
 }
 
 export default useAuth

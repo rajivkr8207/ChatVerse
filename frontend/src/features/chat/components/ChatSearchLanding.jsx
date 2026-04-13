@@ -1,19 +1,22 @@
 import React, { useEffect, useState } from "react";
-import { Search, X } from "lucide-react";
-import { useDispatch } from "react-redux";
+import { Search, X, MessageSquare, ArrowRight } from "lucide-react";
+import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { setActiveChat, setSearching } from "../chat.slice";
 import Button from "../../../components/common/Button";
 import useChat from "../hook/useChat";
+import { motion, AnimatePresence } from "framer-motion";
 
 export default function ChatSearchLanding() {
   const [query, setQuery] = useState("");
   const [debouncedQuery, setDebouncedQuery] = useState("");
   const [results, setResults] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
 
   const { handleSearchChat } = useChat();
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const theme = useSelector(state => state.chat.theme);
 
   // debounce
   useEffect(() => {
@@ -32,11 +35,14 @@ export default function ChatSearchLanding() {
     }
 
     const handleSearch = async () => {
+      setIsLoading(true);
       try {
         const res = await handleSearchChat(debouncedQuery);
         setResults(res?.data || []);
       } catch (err) {
         console.error(err);
+      } finally {
+        setIsLoading(false);
       }
     };
 
@@ -50,55 +56,87 @@ export default function ChatSearchLanding() {
   };
 
   return (
-    <div className="absolute z-20 w-full h-screen bg-neutral-800/30 backdrop-blur-sm">
-      <div className="fixed top-1/2 left-1/2 lg:w-3/6 w-full h-8/12 rounded-2xl transform -translate-x-1/2 -translate-y-1/2 flex items-center justify-center bg-gradient-to-br from-neutral-900 via-black to-neutral-950 text-white">
-
-        <Button
-          className="absolute top-5 right-3 z-30"
-          onClick={() => dispatch(setSearching(false))}
-        >
-          <X />
-        </Button>
-
-        <div className="relative w-full max-w-2xl px-6">
-          <h1 className="text-3xl md:text-4xl font-semibold text-center mb-8">
-            Search your chats
-          </h1>
-
-          <div className="flex items-center gap-3 bg-white/5 border border-white/10 rounded-2xl px-5 py-4">
-            <Search className="text-neutral-400" size={20} />
-            <input
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              type="text"
-              placeholder="Search chats..."
-              className="flex-1 bg-transparent outline-none text-sm md:text-base"
-            />
+    <motion.div 
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className={`fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-md ${theme === 'dark' ? 'dark' : ''}`}
+    >
+      <motion.div 
+        initial={{ scale: 0.95, opacity: 0, y: 20 }}
+        animate={{ scale: 1, opacity: 1, y: 0 }}
+        className="w-full max-w-2xl glass rounded-3xl overflow-hidden shadow-2xl border border-white/10"
+      >
+        <div className="p-6 md:p-8 flex flex-col gap-6">
+          <div className="flex justify-between items-center">
+            <h2 className="text-2xl font-black tracking-tight text-foreground">Find <span className="text-primary italic">Conversations</span></h2>
+            <button
+              onClick={() => dispatch(setSearching(false))}
+              className="p-2 hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-xl transition-colors text-neutral-500"
+            >
+              <X size={20} />
+            </button>
           </div>
 
-          {results.length > 0 && (
-            <div className="mt-4 bg-white/5 border border-white/10 rounded-xl overflow-hidden">
-              {results.map((chat) => (
-                <div
-                  key={chat._id}
-                  onClick={() => openChat(chat._id)}
-                  className="px-4 py-3 cursor-pointer hover:bg-white/10 border-b border-white/5 last:border-none"
-                >
-                  <p className="text-sm font-medium">
-                    {chat.title || "Untitled Chat"}
-                  </p>
-                </div>
-              ))}
+          <div className="relative group">
+            <div className={`absolute inset-0 bg-primary/20 blur-xl opacity-0 group-focus-within:opacity-100 transition-opacity duration-500`} />
+            <div className="relative flex items-center gap-4 bg-card border border-border rounded-2xl px-5 py-4 focus-within:ring-2 focus-within:ring-primary/40 transition-all shadow-lg">
+              <Search className={`${isLoading ? 'animate-pulse' : ''} text-primary`} size={22} />
+              <input
+                autoFocus
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                type="text"
+                placeholder="Search messages, keywords, or topics..."
+                className="flex-1 bg-transparent outline-none text-base font-medium placeholder:text-muted-foreground/50 text-foreground"
+              />
             </div>
-          )}
+          </div>
 
-          {debouncedQuery && results.length === 0 && (
-            <p className="text-center text-neutral-400 mt-4 text-sm">
-              No chats found
-            </p>
-          )}
+          <div className="min-h-[300px] max-h-[400px] overflow-y-auto custom-scrollbar space-y-2 pr-1">
+            <AnimatePresence mode="popLayout">
+              {results.length > 0 ? (
+                results.map((chat, i) => (
+                  <motion.div
+                    key={chat._id}
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: i * 0.05 }}
+                    onClick={() => openChat(chat._id)}
+                    className="flex items-center justify-between p-4 rounded-xl hover:bg-neutral-100 dark:hover:bg-neutral-800 border border-transparent hover:border-neutral-200 dark:hover:border-neutral-700 cursor-pointer transition-all group"
+                  >
+                    <div className="flex items-center gap-4 flex-1 min-w-0">
+                      <div className="p-2.5 bg-neutral-200 dark:bg-neutral-800 rounded-xl group-hover:bg-primary/20 group-hover:text-primary transition-colors">
+                        <MessageSquare size={18} />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-bold truncate text-foreground group-hover:text-primary">
+                          {chat.title || "Untitled Chat"}
+                        </p>
+                        <p className="text-[11px] text-neutral-500 truncate">
+                          Last updated {new Date(chat.updatedAt || Date.now()).toLocaleDateString()}
+                        </p>
+                      </div>
+                    </div>
+                    <ArrowRight size={16} className="text-neutral-300 group-hover:text-primary transition-colors translate-x-1 group-hover:translate-x-0" />
+                  </motion.div>
+                ))
+              ) : debouncedQuery ? (
+                <div className="flex flex-col items-center justify-center h-[300px] text-neutral-500 gap-4">
+                  <div className="p-4 bg-neutral-100 dark:bg-neutral-800 rounded-full">
+                     <Search size={32} />
+                  </div>
+                  <p className="font-medium">No conversations found for "{debouncedQuery}"</p>
+                </div>
+              ) : (
+                <div className="flex flex-col items-center justify-center h-[300px] text-neutral-400 gap-2 opacity-60 italic">
+                  <p className="text-sm text-center">Type something above to search through your<br />entire chat history.</p>
+                </div>
+              )}
+            </AnimatePresence>
+          </div>
         </div>
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   );
 }
