@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { ChessKing, MessageCircle } from 'lucide-react';
+import { MessageCircle, User as UserIcon } from 'lucide-react';
 import remarkGfm from 'remark-gfm';
 import ReactMarkdown from 'react-markdown';
 import useChat from '../hook/useChat';
@@ -15,9 +15,9 @@ import socket from '../../../lib/socket/socket';
 import TypingIndicator from '../components/TypingIndicator';
 import { useNavigate, useParams } from 'react-router-dom';
 import Typewriter from '../../../components/common/Typewriter';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const Chat = () => {
-
   const { chatid } = useParams();
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -40,7 +40,6 @@ const Chat = () => {
   useEffect(() => {
     if (chatid) {
       dispatch(setActiveChat(chatid));
-
       if (!chatid.startsWith('temp')) {
         handleGetChatbyId(chatid);
       }
@@ -72,16 +71,14 @@ const Chat = () => {
         navigate(`/chat/${chatId}`);
       }
     });
+    
     socket.on("typing", ({ chatId, status }) => {
       dispatch(setTyping({ chatId, typing: status }));
     });
-    socket.on("error", (err) => {
-      console.error(err);
-    });
+    
     return () => {
       socket.off("receive_message");
       socket.off("typing");
-      socket.off("error");
     };
   }, [chats]);
 
@@ -90,54 +87,78 @@ const Chat = () => {
   }, [])
 
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "auto" });
-  }, [messages]);
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages, typing]);
 
   return (
-    <div className="flex-1 overflow-y-auto p-6 space-y-6 scroll-smooth">
-      {messages
-        .filter(msg => msg && msg.content)
-        .map((msg, index) => {
-          const role = msg?.role || "ai";
-          const isLastmsg = role === 'ai' && index === messages.length - 1;
-          return (
-            <div
-              key={msg._id || `${role}-${msg.content}-${index}`}
-              className={`flex ${role === 'user' ? 'justify-end' : 'justify-start'}`}
-            >
-              <div
-                className={`max-w-[80%] lg:max-w-[70%] rounded-2xl text-lg p-4 ${role === 'user'
-                  ? 'bg-gradient-to-r from-orange-500 to-orange-600 text-white'
-                  : 'bg-white dark:bg-neutral-800 text-neutral-800 dark:text-neutral-100 border '
-                  }`}
-              >
-                {role === 'ai' && (
-                  <div className="flex items-center text-orange-400 gap-2 mb-2">
-                    <MessageCircle size={14} />
-                    <span className="text-xs">AI Assistant</span>
+    <div className="flex-1 overflow-y-auto px-4 md:px-8 py-6 custom-scrollbar">
+      <div className="max-w-4xl mx-auto space-y-8 pb-12">
+        <AnimatePresence initial={false}>
+          {messages
+            .filter(msg => msg && msg.content)
+            .map((msg, index) => {
+              const role = msg?.role || "ai";
+              const isLastmsg = role === 'ai' && index === messages.length - 1;
+              const isAI = role === 'ai';
+
+              return (
+                <motion.div
+                  key={msg._id || `${role}-${msg.content}-${index}`}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.4, ease: "easeOut" }}
+                  className={`flex ${isAI ? 'justify-start' : 'justify-end'} group`}
+                >
+                  <div className={`flex gap-4 max-w-[90%] md:max-w-[85%] ${isAI ? 'flex-row' : 'flex-row-reverse'}`}>
+                    <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center shadow-sm ${
+                      isAI ? 'bg-primary/10 text-primary' : 'bg-neutral-800 text-white'
+                    }`}>
+                      {isAI ? <MessageCircle size={16} /> : <UserIcon size={16} />}
+                    </div>
+
+                    <div className={`space-y-1 ${isAI ? 'items-start' : 'items-end'} flex flex-col min-w-0 max-w-full flex-1 overflow-hidden`}>
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground px-1">
+                        {isAI ? 'AI Assistant' : 'You'}
+                      </span>
+                      
+                      <div className={`rounded-2xl px-4 md:px-5 py-3 text-sm md:text-base leading-relaxed shadow-sm break-words max-w-full overflow-hidden ${
+                        isAI 
+                          ? 'bg-card text-card-foreground border border-border' 
+                          : 'bg-primary text-white shadow-lg shadow-primary/20'
+                      }`} style={{ overflowWrap: 'anywhere' }}>
+                        {isAI ? (
+                          isLastmsg && isLatestAI.current ? (
+                            <Typewriter text={msg.content} onComplete={() => isLatestAI.current = false} />
+                          ) : (
+                            <div className="markdown-container prose prose-sm md:prose-base prose-neutral dark:prose-invert max-w-full overflow-x-auto custom-scrollbar">
+                              <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                                {msg.content}
+                              </ReactMarkdown>
+                            </div>
+                          )
+                        ) : (
+                          <p className="whitespace-pre-wrap">{msg.content}</p>
+                        )}
+                      </div>
+                    </div>
                   </div>
-                )}
+                </motion.div>
+              );
+            })}
+        </AnimatePresence>
 
-                {role === 'user' ? (
-                  <p>{msg.content}</p>
-                ) : (
-                  isLastmsg && isLatestAI.current ? (
-                    <Typewriter text={msg.content} onComplete={() => isLatestAI.current = false} />
-                  ) : (
-                    <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                      {msg.content}
-                    </ReactMarkdown>
-                  )
-                )}
+        {typing && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+          >
+            <TypingIndicator />
+          </motion.div>
+        )}
 
-              </div>
-            </div>
-          );
-        })}
-
-      {typing && <TypingIndicator />}
-
-      <div ref={messagesEndRef} />
+        <div ref={messagesEndRef} className="h-4" />
+      </div>
     </div>
   );
 };

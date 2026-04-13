@@ -4,7 +4,8 @@ import {
   Send,
   Share,
   X,
-  FilePlusCorner,
+  FilePlus,
+  ArrowUp,
 } from 'lucide-react';
 import Sidebar from '../components/SideNavbar';
 import useChat from '../hook/useChat';
@@ -21,42 +22,48 @@ import socket from '../../../lib/socket/socket';
 import ChatSearchLanding from '../components/ChatSearchLanding';
 import Button from '../../../components/common/Button';
 import ShareChat from '../components/ShareChat'
+import gsap from 'gsap';
+import { useGSAP } from '@gsap/react';
+
 const Dashboard = () => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [darkMode, setDarkMode] = useState(false);
   const [selectedFile, setSelectedFile] = useState(null);
   const navigate = useNavigate()
   const dispatch = useDispatch()
   const location = useLocation();
+  const theme = useSelector(state => state.chat.theme);
   const pathname = location.pathname;
   const pathid = `${window.location.pathname.split('/')[1]}`
   const deleteid = `${window.location.pathname.split('/')[2]}`
 
   const inputRef = useRef(null);
+  const containerRef = useRef(null);
+  const landingRef = useRef(null);
   const userid = useSelector(state => state.auth.user)
-
   const sharing = useSelector(state => state.chat.sharing)
-
   const activeChatId = useSelector(state => state.chat.activeChatId)
   const chats = useSelector(state => state.chat.chats)
-
+  const searching = useSelector(state => state.chat.searching)
+  const [inputValue, setInputValue] = useState('')
   const messages = chats[activeChatId]?.messages || []
   const typing = chats[activeChatId]?.typing || false
   const { handleGetAllChat, setPage, handleDeleteChat, handleGetChatbyId, page, hasMore, loadingMore, } = useChat()
   const messagesEndRef = useRef(null);
 
-  const chatIdRef = useRef(activeChatId);
-  const searching = useSelector(state => state.chat.searching)
-  useEffect(() => {
-    chatIdRef.current = activeChatId;
-  }, [activeChatId]);
-
-
   const toggleSidebar = () => setSidebarOpen(!sidebarOpen);
-  const toggleDarkMode = () => setDarkMode(!darkMode);
+
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "auto" });
   };
+
+  useGSAP(() => {
+    if (pathname === '/') {
+      gsap.fromTo(".landing-content > *",
+        { opacity: 0, y: 30 },
+        { opacity: 1, y: 0, duration: 0.8, stagger: 0.2, ease: "power3.out" }
+      );
+    }
+  }, { dependencies: [pathname], scope: landingRef });
 
   const handleSendMessage = (e, msgtext) => {
     e.preventDefault();
@@ -79,7 +86,6 @@ const Dashboard = () => {
         title: value,
         isPublic: false
       }));
-
     }
 
     dispatch(addMessage({
@@ -97,31 +103,23 @@ const Dashboard = () => {
 
     socket.emit("send_message", data, (response) => {
       const { chatId, chat } = response;
-      let finalChatId = tempChatId;
-
       if (isNewChat && chatId) {
         dispatch(addNewChat(chat));
         dispatch(setTyping({ chatId: chatId, typing: true }));
         dispatch(setActiveChat(chatId));
         navigate(`/chat/${chatId}`);
-        if (selectedFile) {
-          setSelectedFile(null)
-        }
-        finalChatId = chatId;
-      }
-
-      if (finalChatId !== activeChatId && !finalChatId.startsWith("temp")) {
-        return;
+        if (selectedFile) setSelectedFile(null);
       }
     });
 
-    inputRef.current.value = "";
+    setInputValue("");
+    inputRef.current?.focus();
   };
-
 
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
+
   const startNewChat = () => {
     dispatch(setActiveChat(null));
     navigate('/');
@@ -135,7 +133,6 @@ const Dashboard = () => {
   const deleteChat = (chatId, e) => {
     e.stopPropagation();
     if (deleteid.startsWith('temp')) return
-
     if (activeChatId === chatId) {
       dispatch(setActiveChat(null));
       navigate('/');
@@ -144,95 +141,155 @@ const Dashboard = () => {
   };
 
   return (
-    <div className={`h-screen flex overflow-hidden ${darkMode ? 'dark' : ''}`}>
-      <Sidebar toggleSidebar={toggleSidebar} setPage={setPage} page={page} hasMore={hasMore} loadingMore={loadingMore} sidebarOpen={sidebarOpen} handleGetAllChat={handleGetAllChat} darkMode={darkMode} startNewChat={startNewChat} selectChat={selectChat} deleteChat={deleteChat} toggleDarkMode={toggleDarkMode} />
+    <div className="h-screen flex overflow-hidden">
+      <Sidebar
+        toggleSidebar={toggleSidebar}
+        setPage={setPage}
+        page={page}
+        hasMore={hasMore}
+        loadingMore={loadingMore}
+        sidebarOpen={sidebarOpen}
+        handleGetAllChat={handleGetAllChat}
+        startNewChat={startNewChat}
+        selectChat={selectChat}
+        deleteChat={deleteChat}
+      />
+
       {searching && <ChatSearchLanding />}
       {sharing && <ShareChat />}
-      <div className="flex-1 flex flex-col bg-gradient-to-br from-neutral-50 to-neutral-100 dark:from-neutral-900 dark:to-neutral-800 h-full overflow-hidden">
-        <header className="border-b border-neutral-200/50 dark:border-neutral-700/50 bg-white/70 dark:bg-neutral-800/70 backdrop-blur-sm p-4 flex justify-between items-center sticky top-0 z-30">
-          <div className="flex items-center">
-            <button
-              onClick={toggleSidebar}
-              className="p-2 hover:bg-neutral-100 dark:hover:bg-neutral-700 rounded-xl transition-all duration-200 mr-4 text-neutral-600 dark:text-neutral-300"
-            >
-              <Menu size={20} />
-            </button>
-            <p id='Fontlogo' className="text-xl md:text-2xl font-semibold bg-gradient-to-r from-orange-600 capitalize to-red-600 dark:from-orange-400 dark:to-red-400 bg-clip-text text-transparent">
-              <span className='chatlogo'>chat</span><span className='verse'>verse</span>
-            </p>
-          </div>
-          {activeChatId && pathid == 'chat' &&
-            <div>
-              <Button onClick={() => dispatch(setSharing(true))} size="sm" className='text-white flex gap-3 justify-center items-center'>
-                <Share /> Share
-              </Button>
+
+      <main className="flex-1 relative flex flex-col bg-background text-foreground transition-colors duration-300 h-full overflow-hidden">
+        {/* Floating Glass Header */}
+        <header className="absolute top-0 left-0 right-0 z-40 p-3 md:p-4 pointer-events-none">
+          <div className="max-w-6xl mx-auto flex justify-between items-center glass rounded-2xl px-4 py-3 pointer-events-auto border border-border shadow-2xl shadow-black/5">
+            <div className="flex items-center gap-4">
+              <button
+                onClick={toggleSidebar}
+                className="p-2 hover:bg-muted rounded-xl transition-all duration-200 text-muted-foreground"
+              >
+                <Menu size={20} />
+              </button>
+              <div className="flex items-center gap-1">
+                <span className="chatlogo text-xl md:text-2xl bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent italic">chat</span>
+                <span className="verse text-xl md:text-2xl font-bold">Verse</span>
+              </div>
             </div>
-          }
+
+            <div className="flex items-center gap-3">
+              {activeChatId && pathid === 'chat' && (
+                <Button
+                  onClick={() => dispatch(setSharing(true))}
+                  size="sm"
+                  className="rounded-xl flex gap-2 items-center px-4"
+                >
+                  <Share size={16} />
+                  <span className="hidden sm:inline">Share</span>
+                </Button>
+              )}
+            </div>
+          </div>
         </header>
 
-        <Outlet />
+        {/* Content Area */}
+        <div className="flex-1 overflow-hidden flex flex-col pt-20 md:pt-24">
+          <Outlet />
 
-        <div className="my-auto  rounded-lg dark:border-neutral-700/50  backdrop-blur-sm p-4">
-          {/* Heading */}
-          {pathname == '/' &&
-            <h1 className="text-3xl md:text-4xl font-semibold text-center mb-8 text-white">
-              What do you want to know?
-            </h1>
-          }
-          {pathid != "share" &&
-            <form onSubmit={handleSendMessage} className="flex items-center px-5 py-3 gap-3 max-w-4xl border mx-auto border-neutral-200 dark:border-neutral-700 rounded-2xl focus:outline-none focus:ring-2 focus:ring-orange-500/50 bg-white dark:bg-neutral-800 text-neutral-800 dark:text-white placeholder-neutral-400 dark:placeholder-neutral-500 text-[15px] transition-all duration-200">
-              <label htmlFor="file-input" className="cursor-pointer">
-                <FilePlusCorner size={18} />
-              </label>
-              <input type="file" id="file-input" accept="application/pdf" className="hidden" onChange={(e) => setSelectedFile(e.target.files[0])} />
-              <input
-                type="text"
-                ref={inputRef}
-                placeholder="Message AI Assistant..."
-                className="flex-1 outline-none"
-              />
-              <button
-                type="submit"
-                disabled={typing}
-                className="px-6 py-3 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white rounded-2xl transition-all duration-200 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm hover:shadow-md"
-              >
-                <Send size={18} />
-                <span className="font-medium">
-                  {typing ? 'proccessing...' : 'Send'}
-                </span>
-              </button>
-            </form>
-          }
-
-          {selectedFile && (
-            <div className="mt-4 max-w-xl relative mx-auto bg-white dark:bg-neutral-800 rounded-lg p-4 border border-neutral-200 dark:border-neutral-700">
-              <div onClick={() => setSelectedFile(null)} className='w-8 h-8 bg-neutral-600 text-white absolute top-3 right-3 flex justify-center items-center rounded-full '>
-                <X />
+          {pathname === '/' && (
+            <div ref={landingRef} className="flex-1 flex flex-col items-center justify-center p-6 landing-content">
+              <div className="mb-6 md:mb-8 p-4 bg-primary/10 rounded-full float-animation text-primary">
+                <div className="w-12 h-12 md:w-16 md:h-16 rounded-full bg-primary/20 flex items-center justify-center">
+                  <ArrowUp size={32} />
+                </div>
               </div>
-              <p className="text-sm text-neutral-600 dark:text-neutral-400 mb-2">Selected file: {selectedFile.name}</p>
-              <embed src={URL.createObjectURL(selectedFile)} width="100%" height="100" type="application/pdf" />
+              <h1 className="text-3xl md:text-6xl font-black text-center mb-4 tracking-tight leading-tight">
+                What can I <span className="text-primary italic">help</span><br className="hidden md:block" />you with today?
+              </h1>
+              <p className="text-muted-foreground text-center max-w-lg mb-8 md:mb-12 text-base md:text-lg">
+                Ask anything. I'm here to help you brainstorm, research, or just chat.
+              </p>
             </div>
           )}
-          {/* Suggestions */}
-          {pathname == '/' &&
-            <div className="mt-6 flex flex-wrap justify-center gap-3">
-              {[
-                "Explain system design",
-                "Build a chat app",
-                "Best startup ideas",
-                "Learn React fast",
-              ].map((item, i) => (
-                <button
-                  key={i}
-                  onClick={(e) => handleSendMessage(e, item)}
-                  className="px-4 py-2 rounded-full bg-white/5 border text-white border-white/10 text-sm hover:bg-white/10 transition"
+
+          {/* Floating Input Area */}
+          <div className="max-w-4xl w-full mx-auto p-4 md:p-8 space-y-4">
+            {pathid !== "share" && (
+              <div className="relative group">
+                {/* File Preview */}
+                {selectedFile && (
+                  <div className="absolute bottom-full left-0 right-0 mb-4 animate-slide-up">
+                    <div className="glass rounded-2xl p-3 flex items-center gap-3 border border-primary/20 shadow-2xl">
+                      <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center text-primary">
+                        <FilePlus size={20} />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs font-bold truncate">{selectedFile.name}</p>
+                        <p className="text-[10px] opacity-60 uppercase">PDF Document</p>
+                      </div>
+                      <button
+                        onClick={() => setSelectedFile(null)}
+                        className="p-1.5 hover:bg-muted rounded-lg transition-colors"
+                      >
+                        <X size={16} />
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                <form
+                  onSubmit={handleSendMessage}
+                  className="glass p-1.5 md:p-2 pl-3 md:pl-4 rounded-[2rem] flex items-center gap-1.5 md:gap-2 border border-border focus-within:ring-2 focus-within:ring-primary/40 focus-within:border-primary/50 transition-all duration-300 shadow-2xl shadow-black/5"
                 >
-                  {item}
-                </button>
-              ))}
-            </div>}
+                  <label htmlFor="file-input" className="p-2 hover:bg-muted rounded-full cursor-pointer transition-colors text-muted-foreground">
+                    <FilePlus size={20} />
+                  </label>
+                  <input
+                    type="file"
+                    id="file-input"
+                    accept="application/pdf"
+                    className="hidden"
+                    onChange={(e) => setSelectedFile(e.target.files[0])}
+                  />
+                  <input
+                    type="text"
+                    ref={inputRef}
+                    value={inputValue}
+                    onChange={(e) => setInputValue(e.target.value)}
+                    placeholder="Ask ChatVerse anything..."
+                    className="flex-1 bg-transparent py-2 md:py-3 outline-none text-sm md:text-base font-medium placeholder:text-muted-foreground/60"
+                  />
+                  <button
+                    type="submit"
+                    disabled={typing || (!inputValue.trim() && !selectedFile)}
+                    className="w-10 h-10 md:w-12 md:h-12 bg-primary hover:bg-primary-dark text-white rounded-full flex items-center justify-center transition-all duration-300 disabled:opacity-30 disabled:grayscale shadow-lg shadow-primary/20 active:scale-95"
+                  >
+                    <ArrowUp size={24} />
+                  </button>
+                </form>
+              </div>
+            )}
+
+            {/* Suggestions */}
+            {pathname === '/' && (
+              <div className="flex flex-wrap justify-center gap-1.5 md:gap-2 landing-content">
+                {[
+                  "Tokyo trip plan",
+                  "Scraping script",
+                  "Decision models",
+                  "Healthy breakfast",
+                ].map((item, i) => (
+                  <button
+                    key={i}
+                    onClick={(e) => handleSendMessage(e, item)}
+                    className="px-3 md:px-4 py-1.5 md:py-2 rounded-xl glass border border-border text-xs md:text-sm font-medium hover:border-primary/50 hover:bg-primary/5 transition-all duration-300"
+                  >
+                    {item}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
-      </div>
+      </main>
     </div>
   );
 };

@@ -5,7 +5,8 @@ const initialState = {
     chatOrder: [],
     activeChatId: null,
     searching: false,
-    sharing: false
+    sharing: false,
+    theme: localStorage.getItem('theme') || 'dark'
 };
 
 const chatSlice = createSlice({
@@ -126,6 +127,14 @@ const chatSlice = createSlice({
                 state.activeChatId = null;
             }
         },
+        toggleTheme: (state) => {
+            state.theme = state.theme === 'dark' ? 'light' : 'dark';
+            localStorage.setItem('theme', state.theme);
+        },
+        setTheme: (state, action) => {
+            state.theme = action.payload;
+            localStorage.setItem('theme', state.theme);
+        },
     }
 });
 
@@ -143,6 +152,8 @@ export const {
     removeChat,
     removeAllTempChats,
     setSharing,
+    toggleTheme,
+    setTheme,
 } = chatSlice.actions;
 
 export default chatSlice.reducer;

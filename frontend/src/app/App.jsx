@@ -6,21 +6,24 @@ import { ToastContainer } from 'react-toastify'
 import { useEffect, useState } from "react"
 import useAuth from "../features/auth/hook/useAuth"
 import LoadingScreen from "../components/common/LoadingScreen"
+import ThemeProvider from "./ThemeProvider"
 
 const App = () => {
-    const { handleGetme } = useAuth()
+    const { handleProfile } = useAuth()
     const [isLoading, setIsLoading] = useState(true)
 
     useEffect(() => {
-        handleGetme()
+        handleProfile()
     }, [])
 
     return (
         <>
             {isLoading && <LoadingScreen onComplete={() => setIsLoading(false)} />}
             <Provider store={store}>
-                <RouterProvider router={Router} />
-                <ToastContainer />
+                <ThemeProvider>
+                    <RouterProvider router={Router} />
+                    <ToastContainer />
+                </ThemeProvider>
             </Provider>
         </>
     )
