@@ -39,6 +39,7 @@ const Dashboard = () => {
   const inputRef = useRef(null);
   const containerRef = useRef(null);
   const landingRef = useRef(null);
+  const fileInputRef = useRef(null);
   const userid = useSelector(state => state.auth.user)
   const sharing = useSelector(state => state.chat.sharing)
   const activeChatId = useSelector(state => state.chat.activeChatId)
@@ -97,7 +98,6 @@ const Dashboard = () => {
         content: value
       },
     }));
-
     dispatch(setActiveChat(tempChatId));
     dispatch(setTyping({ chatId: tempChatId, typing: true }));
 
@@ -111,6 +111,8 @@ const Dashboard = () => {
         if (selectedFile) setSelectedFile(null);
       }
     });
+    setSelectedFile(null);
+    if (fileInputRef.current) fileInputRef.current.value = '';
 
     setInputValue("");
     inputRef.current?.focus();
@@ -246,6 +248,7 @@ const Dashboard = () => {
                     type="file"
                     id="file-input"
                     accept="application/pdf"
+                    ref={fileInputRef}
                     className="hidden"
                     onChange={(e) => setSelectedFile(e.target.files[0])}
                   />
