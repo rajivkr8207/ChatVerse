@@ -69,6 +69,7 @@ export const registerUser = asyncHandler(async (req, res) => {
         username,
         email,
         password,
+        isVerified: true,
         verificationToken: token,
         verificationTokenExpire: tokenExpire
     });

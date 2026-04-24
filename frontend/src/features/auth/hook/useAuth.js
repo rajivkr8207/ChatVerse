@@ -15,7 +15,7 @@ const useAuth = () => {
         try {
             dispatch(setLoading(true))
             const res = await RegisterUser({ fullName, username, email, password })
-            toast.success('Register successfully verify your mail')
+            toast.success('Register successfully')
             console.log(res);
             return res
         } catch (error) {
