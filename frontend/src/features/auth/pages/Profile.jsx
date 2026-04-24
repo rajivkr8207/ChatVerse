@@ -41,7 +41,7 @@ export default function Profile() {
 
                     <div className="flex justify-between border-b border-neutral-700 pb-3">
                         <span className="text-neutral-400">Joined</span>
-                        <span>{userdata?.createdAt.split('T')[0]}</span>
+                        <span>{userdata?.createdAt?.split('T')[0]}</span>
                     </div>
                     <div className="flex justify-between border-b border-neutral-700 pb-3">
                         <span className="text-neutral-400">Login With</span>
