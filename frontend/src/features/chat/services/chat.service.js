@@ -39,3 +39,8 @@ export async function GetShareChatApi(chatid) {
     const res = await api.get(`api/chat/share/${chatid}`)
     return res.data
 }
+
+export async function GetTrendingTopics() {
+    const res = await api.get(`api/chat/trending-topics`)
+    return res.data
+}

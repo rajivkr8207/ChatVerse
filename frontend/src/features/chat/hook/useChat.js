@@ -7,7 +7,8 @@ import {
     setMessages,
     setChatLoading,
     setChatError,
-    removeChat
+    removeChat,
+    setTrendingTopics
 } from "../chat.slice";
 
 import {
@@ -17,7 +18,8 @@ import {
     GetShareChatApi,
     SearchChat,
     Sendmessage,
-    ShareChatApi
+    ShareChatApi,
+    GetTrendingTopics
 } from "../services/chat.service";
 
 import { initializeSocketconnection } from "../services/chat.socket";
@@ -30,7 +32,7 @@ const useChat = () => {
     const navigate = useNavigate();
 
     const activeChatId = useSelector(state => state.chat.activeChatId);
-
+    const trendingTopics = useSelector(state => state.chat.trendingTopics);
     const [page, setPage] = useState(1);
     const [hasMore, setHasMore] = useState(true);
     const [loadingMore, setLoadingMore] = useState(false);
@@ -39,6 +41,11 @@ const useChat = () => {
         if (!hasMore) return;
         handleGetAllChat();
     }, [page]);
+
+    useEffect(() => {
+        if (trendingTopics) return;
+        handleGetTrendis();
+    }, []);
 
     const handleSendMessageApi = async (data) => {
         const chatId = activeChatId;
@@ -99,6 +106,16 @@ const useChat = () => {
             setLoadingMore(false);
         }
     };
+
+    const handleGetTrendis = async () => {
+        try {
+            const res = await GetTrendingTopics();
+            const data = (JSON.parse(res.data))
+            dispatch(setTrendingTopics(data));
+        } catch (error) {
+            console.error(error);
+        }
+    }
 
     const handleGetChatbyId = async (chatId) => {
         try {
@@ -186,7 +203,8 @@ const useChat = () => {
         handleSendMessageApi,
         handleGetAllChat,
         handleDeleteChat,
-        handleGetChatbyId
+        handleGetChatbyId,
+        trendingTopics
     };
 };
 
