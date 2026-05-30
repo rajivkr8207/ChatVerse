@@ -3,6 +3,7 @@ import { errorHandler } from "./middleware/error.middleware.js";
 import AuthRouter from "./routes/auth.route.js";
 import ChatRouter from "./routes/chat.route.js";
 import { Middleware } from "./app.middleware.js";
+import AdminRouter from "./routes/admin.route.js";
 const app = express()
 
 
@@ -18,6 +19,8 @@ app.get('/health', (req, res) => {
 
 app.use('/api/auth', AuthRouter)
 app.use("/api/chat", ChatRouter);
+app.use("/api/admin", AdminRouter);
+
 
 app.use(errorHandler);
 export default app;

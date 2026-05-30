@@ -1,0 +1,63 @@
+<%
+// Expected locals: action (form action URL), filters (object of current query params)
+// filters: { search, status, isVerified, role, sortBy }
+%>
+<form method="GET" action="<%= action %>" class="flex flex-col sm:flex-row gap-3 flex-wrap" id="filterForm">
+  <!-- Search -->
+  <div class="relative flex-1 min-w-[200px]">
+    <span class="absolute inset-y-0 left-3 flex items-center pointer-events-none text-gray-400">
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+      </svg>
+    </span>
+    <input
+      type="text"
+      name="search"
+      id="searchInput"
+      value="<%= typeof filters !== 'undefined' && filters.search ? filters.search : '' %>"
+      placeholder="Search users by name, email, username…"
+      class="w-full pl-9 pr-4 py-2.5 text-sm bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl text-gray-700 dark:text-gray-300 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-500/40 focus:border-brand-500 transition-all"
+    />
+  </div>
+
+  <!-- Status Filter -->
+  <select name="isBlocked" onchange="this.form.submit()" class="px-3 py-2.5 text-sm bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-2 focus:ring-brand-500/40 focus:border-brand-500 transition-all cursor-pointer">
+    <option value="">All Status</option>
+    <option value="false" <%= typeof filters !== 'undefined' && filters.isBlocked === 'false' ? 'selected' : '' %>>Active</option>
+    <option value="true"  <%= typeof filters !== 'undefined' && filters.isBlocked === 'true'  ? 'selected' : '' %>>Banned</option>
+  </select>
+
+  <!-- Verified Filter -->
+  <select name="isVerified" onchange="this.form.submit()" class="px-3 py-2.5 text-sm bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-2 focus:ring-brand-500/40 focus:border-brand-500 transition-all cursor-pointer">
+    <option value="">All Verification</option>
+    <option value="true"  <%= typeof filters !== 'undefined' && filters.isVerified === 'true'  ? 'selected' : '' %>>Verified</option>
+    <option value="false" <%= typeof filters !== 'undefined' && filters.isVerified === 'false' ? 'selected' : '' %>>Unverified</option>
+  </select>
+
+  <!-- Provider Filter -->
+  <select name="provider" onchange="this.form.submit()" class="px-3 py-2.5 text-sm bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-2 focus:ring-brand-500/40 focus:border-brand-500 transition-all cursor-pointer">
+    <option value="">All Providers</option>
+    <option value="email"  <%= typeof filters !== 'undefined' && filters.provider === 'email'  ? 'selected' : '' %>>Email</option>
+    <option value="google" <%= typeof filters !== 'undefined' && filters.provider === 'google' ? 'selected' : '' %>>Google</option>
+  </select>
+
+  <!-- Sort -->
+  <select name="sortBy" onchange="this.form.submit()" class="px-3 py-2.5 text-sm bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-2 focus:ring-brand-500/40 focus:border-brand-500 transition-all cursor-pointer">
+    <option value="-createdAt" <%= typeof filters !== 'undefined' && filters.sortBy === '-createdAt' ? 'selected' : '' %>>Newest First</option>
+    <option value="createdAt"  <%= typeof filters !== 'undefined' && filters.sortBy === 'createdAt'  ? 'selected' : '' %>>Oldest First</option>
+    <option value="fullName"   <%= typeof filters !== 'undefined' && filters.sortBy === 'fullName'   ? 'selected' : '' %>>Name A-Z</option>
+    <option value="-fullName"  <%= typeof filters !== 'undefined' && filters.sortBy === '-fullName'  ? 'selected' : '' %>>Name Z-A</option>
+  </select>
+
+  <!-- Search Submit -->
+  <button type="submit" class="px-4 py-2.5 bg-brand-600 hover:bg-brand-700 text-white text-sm font-semibold rounded-xl transition-colors shadow-sm">
+    Search
+  </button>
+
+  <!-- Clear -->
+  <% if (typeof filters !== 'undefined' && (filters.search || filters.isBlocked || filters.isVerified || filters.provider)) { %>
+  <a href="<%= action %>" class="px-4 py-2.5 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-400 text-sm font-medium rounded-xl transition-colors">
+    Clear
+  </a>
+  <% } %>
+</form>

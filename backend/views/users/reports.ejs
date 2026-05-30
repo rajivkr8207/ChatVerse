@@ -1,0 +1,136 @@
+<%
+// locals: stats { totalUsers, activeUsers, bannedUsers, verifiedUsers, unverifiedUsers,
+//                 googleUsers, emailUsers, totalChats, totalMessages }
+//         chartData { userGrowth, messagesPerDay }
+const s = typeof stats !== 'undefined' ? stats : {};
+%>
+
+<div class="space-y-6">
+
+  <!-- Header -->
+  <div>
+    <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Analytics & Reports</h1>
+    <p class="text-sm text-gray-500 dark:text-gray-400 mt-0.5">Platform-wide statistics and trends</p>
+  </div>
+
+  <!-- Summary Grid -->
+  <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+    <% const summaryCards = [
+      { label: 'Total Users',    value: s.totalUsers    || 0, color: 'text-blue-600   dark:text-blue-400'   },
+      { label: 'Active',         value: s.activeUsers   || 0, color: 'text-emerald-600 dark:text-emerald-400' },
+      { label: 'Banned',         value: s.bannedUsers   || 0, color: 'text-red-600    dark:text-red-400'    },
+      { label: 'Verified',       value: s.verifiedUsers || 0, color: 'text-brand-600  dark:text-brand-400'  },
+      { label: 'Total Chats',    value: s.totalChats    || 0, color: 'text-violet-600 dark:text-violet-400' },
+      { label: 'Total Messages', value: s.totalMessages || 0, color: 'text-amber-600  dark:text-amber-400'  },
+    ]; %>
+    <% summaryCards.forEach(function(card) { %>
+    <div class="card-hover bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm p-4 text-center">
+      <p class="text-xl font-bold <%= card.color %>"><%= card.value.toLocaleString() %></p>
+      <p class="text-xs text-gray-400 mt-1 font-medium"><%= card.label %></p>
+    </div>
+    <% }); %>
+  </div>
+
+  <!-- Charts Row -->
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
+    <!-- User Growth -->
+    <div class="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm p-5">
+      <div class="mb-5">
+        <h2 class="text-sm font-semibold text-gray-800 dark:text-white">User Growth (30 Days)</h2>
+        <p class="text-xs text-gray-400 mt-0.5">New user registrations per day</p>
+      </div>
+      <div class="h-60"><canvas id="reportUserGrowthChart"></canvas></div>
+    </div>
+
+    <!-- Messages Per Day -->
+    <div class="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm p-5">
+      <div class="mb-5">
+        <h2 class="text-sm font-semibold text-gray-800 dark:text-white">Messages Per Day (14 Days)</h2>
+        <p class="text-xs text-gray-400 mt-0.5">Total messages sent daily</p>
+      </div>
+      <div class="h-60"><canvas id="reportMessagesChart"></canvas></div>
+    </div>
+  </div>
+
+  <!-- Provider + Status Row -->
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
+    <!-- Provider Breakdown -->
+    <div class="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm p-5">
+      <h2 class="text-sm font-semibold text-gray-800 dark:text-white mb-5">Sign-in Provider Breakdown</h2>
+      <div class="h-48 flex items-center justify-center"><canvas id="providerChart"></canvas></div>
+      <div class="mt-5 space-y-3">
+        <div class="flex items-center justify-between">
+          <span class="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+            <span class="w-3 h-3 rounded-full bg-brand-500 inline-block"></span>Email / Password
+          </span>
+          <div class="flex items-center gap-3">
+            <span class="text-sm font-semibold text-gray-800 dark:text-gray-200"><%= (s.emailUsers || 0).toLocaleString() %></span>
+            <span class="text-xs text-gray-400">(<%= s.totalUsers ? Math.round((s.emailUsers / s.totalUsers) * 100) : 0 %>%)</span>
+          </div>
+        </div>
+        <div class="flex items-center justify-between">
+          <span class="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+            <span class="w-3 h-3 rounded-full bg-red-500 inline-block"></span>Google OAuth
+          </span>
+          <div class="flex items-center gap-3">
+            <span class="text-sm font-semibold text-gray-800 dark:text-gray-200"><%= (s.googleUsers || 0).toLocaleString() %></span>
+            <span class="text-xs text-gray-400">(<%= s.totalUsers ? Math.round((s.googleUsers / s.totalUsers) * 100) : 0 %>%)</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Verification Status -->
+    <div class="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm p-5">
+      <h2 class="text-sm font-semibold text-gray-800 dark:text-white mb-5">Account Status Distribution</h2>
+      <div class="space-y-4">
+        <% const bars = [
+          { label: 'Verified',    value: s.verifiedUsers   || 0, total: s.totalUsers || 1, color: 'bg-emerald-500' },
+          { label: 'Unverified',  value: s.unverifiedUsers || 0, total: s.totalUsers || 1, color: 'bg-amber-400' },
+          { label: 'Active',      value: s.activeUsers     || 0, total: s.totalUsers || 1, color: 'bg-blue-500' },
+          { label: 'Banned',      value: s.bannedUsers     || 0, total: s.totalUsers || 1, color: 'bg-red-500' },
+        ]; %>
+        <% bars.forEach(function(bar) { %>
+        <div>
+          <div class="flex items-center justify-between mb-1.5">
+            <span class="text-xs font-medium text-gray-600 dark:text-gray-400"><%= bar.label %></span>
+            <span class="text-xs font-semibold text-gray-700 dark:text-gray-300"><%= bar.value.toLocaleString() %> (<%= Math.round((bar.value / bar.total) * 100) %>%)</span>
+          </div>
+          <div class="h-2 w-full bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden">
+            <div class="h-2 <%= bar.color %> rounded-full transition-all duration-700" style="width: <%= Math.round((bar.value / bar.total) * 100) %>%"></div>
+          </div>
+        </div>
+        <% }); %>
+      </div>
+    </div>
+  </div>
+
+  <!-- Export -->
+  <div class="flex items-center justify-end gap-3">
+    <a href="/admin/reports/export?format=json" class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors shadow-sm">
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+      Export JSON
+    </a>
+    <a href="/admin/reports/export?format=csv" class="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-brand-600 hover:bg-brand-700 rounded-xl transition-colors shadow-sm">
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+      Export CSV
+    </a>
+  </div>
+</div>
+
+<script>
+const chartData = <%- JSON.stringify(typeof chartData !== 'undefined' ? chartData : {}) %>;
+const isDark = () => document.documentElement.classList.contains('dark');
+const gc = () => isDark() ? 'rgba(255,255,255,0.07)' : 'rgba(0,0,0,0.06)';
+const tc = () => isDark() ? '#9ca3af' : '#6b7280';
+const baseOpts = { responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{ x:{grid:{color:gc()},ticks:{color:tc(),font:{size:11}}}, y:{grid:{color:gc()},ticks:{color:tc(),font:{size:11}},beginAtZero:true} } };
+
+const ugCtx = document.getElementById('reportUserGrowthChart');
+if (ugCtx) new Chart(ugCtx, { type:'line', data:{ labels: chartData.userGrowth?.labels||[], datasets:[{ data:chartData.userGrowth?.data||[], borderColor:'#5c7cfa', backgroundColor:'rgba(92,124,250,0.08)', borderWidth:2.5, tension:0.4, fill:true, pointRadius:3, pointBackgroundColor:'#5c7cfa' }] }, options:{...baseOpts, maintainAspectRatio:false} });
+
+const mpCtx = document.getElementById('reportMessagesChart');
+if (mpCtx) new Chart(mpCtx, { type:'bar', data:{ labels:chartData.messagesPerDay?.labels||[], datasets:[{ data:chartData.messagesPerDay?.data||[], backgroundColor:'rgba(92,124,250,0.7)', borderRadius:5, borderSkipped:false }] }, options:{...baseOpts, maintainAspectRatio:false} });
+
+const pvCtx = document.getElementById('providerChart');
+if (pvCtx) new Chart(pvCtx, { type:'doughnut', data:{ labels:['Email','Google'], datasets:[{ data:[<%= s.emailUsers||0 %>,<%= s.googleUsers||0 %>], backgroundColor:['#5c7cfa','#ef4444'], borderWidth:0, hoverOffset:6 }] }, options:{ responsive:true, maintainAspectRatio:false, cutout:'72%', plugins:{ legend:{display:false} } } });
+</script>

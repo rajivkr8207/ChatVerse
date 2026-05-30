@@ -1,0 +1,388 @@
+<% // locals: stats { totalUsers, activeToday, totalChats, totalMessages, userChange, activeTodayChange, chatChange,
+  messageChange } // recentUsers (array), chartData { userGrowth, messagesPerDay, userStatus } const s=typeof stats
+  !=='undefined' ? stats : {}; %>
+
+  <div class="space-y-6">
+
+    <!-- Page Title -->
+    <div class="flex items-center justify-between gap-4 flex-wrap">
+      <div>
+        <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Dashboard</h1>
+        <p class="mt-0.5 text-sm text-gray-500 dark:text-gray-400">Welcome back, Administrator 👋</p>
+      </div>
+      <div
+        class="flex items-center gap-2 text-xs text-gray-400 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl px-3 py-2 shadow-sm">
+        <span class="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></span>
+        Last updated: <span id="lastUpdated" class="font-medium text-gray-600 dark:text-gray-300"></span>
+      </div>
+    </div>
+
+    <!-- Stats Cards Grid -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+
+      <!-- Total Users -->
+      <div
+        class="card-hover bg-white dark:bg-gray-900 rounded-2xl p-5 border border-gray-200 dark:border-gray-800 shadow-sm">
+        <div class="flex items-start justify-between mb-4">
+          <div>
+            <p class="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider">Total Users</p>
+            <p class="mt-1.5 text-2xl font-bold text-gray-900 dark:text-white">
+              <%= (s.totalUsers || 0).toLocaleString() %>
+            </p>
+          </div>
+          <div class="bg-blue-50 dark:bg-blue-900/20 ring-1 ring-blue-100 dark:ring-blue-900/40 p-2.5 rounded-xl">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-blue-500" fill="none" viewBox="0 0 24 24"
+              stroke="currentColor" stroke-width="1.8">
+              <path stroke-linecap="round" stroke-linejoin="round"
+                d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+            </svg>
+          </div>
+        </div>
+        <div class="flex items-center gap-2">
+          <span
+            class="inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full <%= (s.userChange || 0) >= 0 ? 'bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300' : 'bg-red-100 dark:bg-red-900/40 text-red-600 dark:text-red-400' %>">
+            <%= (s.userChange || 0)>= 0 ? '↑' : '↓' %> <%= Math.abs(s.userChange || 0) %>%
+          </span>
+          <span class="text-xs text-gray-400">vs last month</span>
+        </div>
+      </div>
+
+      <!-- Active Today -->
+      <div
+        class="card-hover bg-white dark:bg-gray-900 rounded-2xl p-5 border border-gray-200 dark:border-gray-800 shadow-sm">
+        <div class="flex items-start justify-between mb-4">
+          <div>
+            <p class="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider">Active Today</p>
+            <p class="mt-1.5 text-2xl font-bold text-gray-900 dark:text-white">
+              <%= (s.activeToday || 0).toLocaleString() %>
+            </p>
+          </div>
+          <div
+            class="bg-emerald-50 dark:bg-emerald-900/20 ring-1 ring-emerald-100 dark:ring-emerald-900/40 p-2.5 rounded-xl">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-emerald-500" fill="none" viewBox="0 0 24 24"
+              stroke="currentColor" stroke-width="1.8">
+              <path stroke-linecap="round" stroke-linejoin="round"
+                d="M5.636 18.364a9 9 0 010-12.728m12.728 0a9 9 0 010 12.728m-9.9-2.829a5 5 0 010-7.07m7.072 0a5 5 0 010 7.07M13 12a1 1 0 11-2 0 1 1 0 012 0z" />
+            </svg>
+          </div>
+        </div>
+        <div class="flex items-center gap-2">
+          <span
+            class="inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full <%= (s.activeTodayChange || 0) >= 0 ? 'bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300' : 'bg-red-100 dark:bg-red-900/40 text-red-600 dark:text-red-400' %>">
+            <%= (s.activeTodayChange || 0)>= 0 ? '↑' : '↓' %> <%= Math.abs(s.activeTodayChange || 0) %>%
+          </span>
+          <span class="text-xs text-gray-400">vs yesterday</span>
+        </div>
+      </div>
+
+      <!-- Total Chats -->
+      <div
+        class="card-hover bg-white dark:bg-gray-900 rounded-2xl p-5 border border-gray-200 dark:border-gray-800 shadow-sm">
+        <div class="flex items-start justify-between mb-4">
+          <div>
+            <p class="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider">Total Chats</p>
+            <p class="mt-1.5 text-2xl font-bold text-gray-900 dark:text-white">
+              <%= (s.totalChats || 0).toLocaleString() %>
+            </p>
+          </div>
+          <div
+            class="bg-violet-50 dark:bg-violet-900/20 ring-1 ring-violet-100 dark:ring-violet-900/40 p-2.5 rounded-xl">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-violet-500" fill="none" viewBox="0 0 24 24"
+              stroke="currentColor" stroke-width="1.8">
+              <path stroke-linecap="round" stroke-linejoin="round"
+                d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+            </svg>
+          </div>
+        </div>
+        <div class="flex items-center gap-2">
+          <span
+            class="inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full <%= (s.chatChange || 0) >= 0 ? 'bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300' : 'bg-red-100 dark:bg-red-900/40 text-red-600 dark:text-red-400' %>">
+            <%= (s.chatChange || 0)>= 0 ? '↑' : '↓' %> <%= Math.abs(s.chatChange || 0) %>%
+          </span>
+          <span class="text-xs text-gray-400">vs last month</span>
+        </div>
+      </div>
+
+      <!-- Total Messages -->
+      <div
+        class="card-hover bg-white dark:bg-gray-900 rounded-2xl p-5 border border-gray-200 dark:border-gray-800 shadow-sm">
+        <div class="flex items-start justify-between mb-4">
+          <div>
+            <p class="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider">Total Messages
+            </p>
+            <p class="mt-1.5 text-2xl font-bold text-gray-900 dark:text-white">
+              <%= (s.totalMessages || 0).toLocaleString() %>
+            </p>
+          </div>
+          <div class="bg-amber-50 dark:bg-amber-900/20 ring-1 ring-amber-100 dark:ring-amber-900/40 p-2.5 rounded-xl">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-amber-500" fill="none" viewBox="0 0 24 24"
+              stroke="currentColor" stroke-width="1.8">
+              <path stroke-linecap="round" stroke-linejoin="round"
+                d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+            </svg>
+          </div>
+        </div>
+        <div class="flex items-center gap-2">
+          <span
+            class="inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full <%= (s.messageChange || 0) >= 0 ? 'bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300' : 'bg-red-100 dark:bg-red-900/40 text-red-600 dark:text-red-400' %>">
+            <%= (s.messageChange || 0)>= 0 ? '↑' : '↓' %> <%= Math.abs(s.messageChange || 0) %>%
+          </span>
+          <span class="text-xs text-gray-400">vs last month</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Charts Row -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+
+      <!-- User Growth Line Chart (spans 2 cols) -->
+      <div
+        class="lg:col-span-2 bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm p-5">
+        <div class="flex items-center justify-between mb-5 flex-wrap gap-2">
+          <div>
+            <h2 class="text-sm font-semibold text-gray-800 dark:text-white">User Growth</h2>
+            <p class="text-xs text-gray-400 mt-0.5">New registrations over the past 30 days</p>
+          </div>
+          <span class="text-xs text-gray-400 bg-gray-100 dark:bg-gray-800 px-3 py-1 rounded-full font-medium">Last 30
+            Days</span>
+        </div>
+        <div class="h-64">
+          <canvas id="userGrowthChart"></canvas>
+        </div>
+      </div>
+
+      <!-- User Status Pie Chart -->
+      <div class="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm p-5">
+        <div class="mb-5">
+          <h2 class="text-sm font-semibold text-gray-800 dark:text-white">User Status</h2>
+          <p class="text-xs text-gray-400 mt-0.5">Distribution of account statuses</p>
+        </div>
+        <div class="h-48 flex items-center justify-center">
+          <canvas id="userStatusChart"></canvas>
+        </div>
+        <div class="mt-4 space-y-2">
+          <div class="flex items-center justify-between text-xs">
+            <span class="flex items-center gap-2 text-gray-600 dark:text-gray-400"><span
+                class="w-2.5 h-2.5 rounded-full bg-emerald-500 inline-block"></span>Active</span>
+            <span class="font-semibold text-gray-800 dark:text-gray-200">
+              <%= s.activeUsers || 0 %>
+            </span>
+          </div>
+          <div class="flex items-center justify-between text-xs">
+            <span class="flex items-center gap-2 text-gray-600 dark:text-gray-400"><span
+                class="w-2.5 h-2.5 rounded-full bg-red-500 inline-block"></span>Banned</span>
+            <span class="font-semibold text-gray-800 dark:text-gray-200">
+              <%= s.bannedUsers || 0 %>
+            </span>
+          </div>
+          <div class="flex items-center justify-between text-xs">
+            <span class="flex items-center gap-2 text-gray-600 dark:text-gray-400"><span
+                class="w-2.5 h-2.5 rounded-full bg-amber-400 inline-block"></span>Unverified</span>
+            <span class="font-semibold text-gray-800 dark:text-gray-200">
+              <%= s.unverifiedUsers || 0 %>
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Messages Per Day Bar Chart -->
+    <div class="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm p-5">
+      <div class="flex items-center justify-between mb-5 flex-wrap gap-2">
+        <div>
+          <h2 class="text-sm font-semibold text-gray-800 dark:text-white">Messages Per Day</h2>
+          <p class="text-xs text-gray-400 mt-0.5">AI + User messages sent in the last 14 days</p>
+        </div>
+        <span class="text-xs text-gray-400 bg-gray-100 dark:bg-gray-800 px-3 py-1 rounded-full font-medium">Last 14
+          Days</span>
+      </div>
+      <div class="h-56">
+        <canvas id="messagesPerDayChart"></canvas>
+      </div>
+    </div>
+
+    <!-- Recent Users Table -->
+    <div
+      class="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm overflow-hidden">
+      <div class="flex items-center justify-between px-5 py-4 border-b border-gray-100 dark:border-gray-800">
+        <div>
+          <h2 class="text-sm font-semibold text-gray-800 dark:text-white">Recent Registrations</h2>
+          <p class="text-xs text-gray-400 mt-0.5">Latest 5 users who joined</p>
+        </div>
+        <a href="/admin/users" class="text-xs font-semibold text-brand-600 dark:text-brand-400 hover:underline">View all
+          →</a>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="border-b border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-gray-800/50">
+              <th class="px-5 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">User</th>
+              <th class="px-5 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Provider</th>
+              <th class="px-5 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Status</th>
+              <th class="px-5 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Verified</th>
+              <th class="px-5 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Joined</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
+            <% if (typeof recentUsers !=='undefined' && recentUsers && recentUsers.length> 0) { %>
+              <% recentUsers.forEach(function(user) { %>
+                <tr class="hover:bg-gray-50 dark:hover:bg-gray-800/40 transition-colors">
+                  <td class="px-5 py-3.5">
+                    <div class="flex items-center gap-3">
+                      <div
+                        class="w-8 h-8 rounded-xl bg-gradient-to-br from-brand-400 to-brand-600 flex items-center justify-center flex-shrink-0">
+                        <span class="text-white text-xs font-bold">
+                          <%= user.fullName ? user.fullName.charAt(0).toUpperCase() : '?' %>
+                        </span>
+                      </div>
+                      <div>
+                        <p class="font-medium text-gray-800 dark:text-gray-200 text-sm">
+                          <%= user.fullName %>
+                        </p>
+                        <p class="text-xs text-gray-400 truncate max-w-[160px]">
+                          <%= user.email %>
+                        </p>
+                      </div>
+                    </div>
+                  </td>
+                  <td class="px-5 py-3.5">
+                    <span class="inline-flex items-center gap-1.5 text-xs font-medium text-gray-600 dark:text-gray-400">
+                      <% if (user.provider==='google' ) { %>
+                        <span class="text-base">G</span> Google
+                        <% } else { %>
+                          📧 Email
+                          <% } %>
+                    </span>
+                  </td>
+                  <td class="px-5 py-3.5">
+                    <% if (user.isBlocked) { %>
+                      <span
+                        class="status-badge bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400">Banned</span>
+                      <% } else { %>
+                        <span
+                          class="status-badge bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400">Active</span>
+                        <% } %>
+                  </td>
+                  <td class="px-5 py-3.5">
+                    <% if (user.isVerified) { %>
+                      <span class="text-emerald-500" title="Verified">✓</span>
+                      <% } else { %>
+                        <span class="text-gray-300 dark:text-gray-600" title="Not verified">✗</span>
+                        <% } %>
+                  </td>
+                  <td class="px-5 py-3.5 text-xs text-gray-400 whitespace-nowrap">
+                    <%= new Date(user.createdAt).toLocaleDateString('en-IN', { day:'2-digit', month:'short',
+                      year:'numeric' }) %>
+                  </td>
+                </tr>
+                <% }); %>
+                  <% } else { %>
+                    <tr>
+                      <td colspan="5" class="px-5 py-10 text-center text-sm text-gray-400">No recent users found</td>
+                    </tr>
+                    <% } %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    // Set last updated time
+    document.getElementById('lastUpdated').textContent = new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
+
+    // ─── Chart Data from EJS ───────────────────────────────────────
+    const chartData = <% - JSON.stringify(typeof chartData !== 'undefined' ? chartData : {}) %>;
+
+    const isDark = () => document.documentElement.classList.contains('dark');
+    const gridColor = () => isDark() ? 'rgba(255,255,255,0.07)' : 'rgba(0,0,0,0.06)';
+    const textColor = () => isDark() ? '#9ca3af' : '#6b7280';
+
+    const defaultChartOptions = {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { grid: { color: gridColor() }, ticks: { color: textColor(), font: { size: 11 } } },
+        y: { grid: { color: gridColor() }, ticks: { color: textColor(), font: { size: 11 } }, beginAtZero: true }
+      }
+    };
+
+    // User Growth Line Chart
+    const ugCtx = document.getElementById('userGrowthChart');
+    if (ugCtx) {
+      new Chart(ugCtx, {
+        type: 'line',
+        data: {
+          labels: chartData.userGrowth?.labels || ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul'],
+          datasets: [{
+            label: 'New Users',
+            data: chartData.userGrowth?.data || [12, 19, 8, 25, 22, 30, 18],
+            borderColor: '#5c7cfa',
+            backgroundColor: 'rgba(92,124,250,0.1)',
+            borderWidth: 2.5,
+            pointBackgroundColor: '#5c7cfa',
+            pointRadius: 4,
+            pointHoverRadius: 6,
+            tension: 0.4,
+            fill: true
+          }]
+        },
+        options: { ...defaultChartOptions, maintainAspectRatio: false }
+      });
+    }
+
+    // Messages Per Day Bar Chart
+    const mpCtx = document.getElementById('messagesPerDayChart');
+    if (mpCtx) {
+      new Chart(mpCtx, {
+        type: 'bar',
+        data: {
+          labels: chartData.messagesPerDay?.labels || ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+          datasets: [{
+            label: 'Messages',
+            data: chartData.messagesPerDay?.data || [120, 190, 80, 250, 220, 300, 180],
+            backgroundColor: 'rgba(92,124,250,0.75)',
+            borderRadius: 6,
+            borderSkipped: false
+          }]
+        },
+        options: { ...defaultChartOptions, maintainAspectRatio: false }
+      });
+    }
+
+    // User Status Pie Chart
+    const usCtx = document.getElementById('userStatusChart');
+    if (usCtx) {
+      new Chart(usCtx, {
+        type: 'doughnut',
+        data: {
+          labels: ['Active', 'Banned', 'Unverified'],
+          datasets: [{
+            data: chartData.userStatus?.data || [
+          <%= s.activeUsers || 0 %>,
+          <%= s.bannedUsers || 0 %>,
+          <%= s.unverifiedUsers || 0 %>
+        ],
+            backgroundColor: ['#10b981', '#ef4444', '#f59e0b'],
+            borderWidth: 0,
+            hoverOffset: 6
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          cutout: '72%',
+          plugins: {
+            legend: { display: false },
+            tooltip: { callbacks: { label: ctx => ` ${ctx.label}: ${ctx.raw}` } }
+          }
+        }
+      });
+    }
+
+    // Re-render charts on theme toggle
+    const observer = new MutationObserver(() => { location.reload(); });
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+  </script>
