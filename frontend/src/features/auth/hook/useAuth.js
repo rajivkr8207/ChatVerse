@@ -16,7 +16,6 @@ const useAuth = () => {
             dispatch(setLoading(true))
             const res = await RegisterUser({ fullName, username, email, password })
             toast.success('Register successfully')
-            console.log(res);
             return res
         } catch (error) {
             const message =
