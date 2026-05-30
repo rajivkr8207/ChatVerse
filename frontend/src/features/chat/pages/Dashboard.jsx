@@ -272,7 +272,7 @@ const Dashboard = () => {
             )}
 
             {/* Suggestions */}
-            {pathname === '/' && (
+            {pathname === '/' && trendingTopics?.length > 0 && (
               <div className="flex flex-wrap justify-center gap-1.5 md:gap-2 landing-content">
                 {trendingTopics?.map((item, i) => (
                   <button

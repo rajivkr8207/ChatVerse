@@ -43,7 +43,7 @@ const useChat = () => {
     }, [page]);
 
     useEffect(() => {
-        if (trendingTopics) return;
+        if (trendingTopics && trendingTopics.length > 0) return;
         handleGetTrendis();
     }, []);
 

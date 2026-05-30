@@ -71,11 +71,11 @@ const Chat = () => {
         navigate(`/chat/${chatId}`);
       }
     });
-    
+
     socket.on("typing", ({ chatId, status }) => {
       dispatch(setTyping({ chatId, typing: status }));
     });
-    
+
     return () => {
       socket.off("receive_message");
       socket.off("typing");
@@ -110,9 +110,8 @@ const Chat = () => {
                   className={`flex ${isAI ? 'justify-start' : 'justify-end'} group`}
                 >
                   <div className={`flex gap-4 max-w-[90%] md:max-w-[85%] ${isAI ? 'flex-row' : 'flex-row-reverse'}`}>
-                    <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center shadow-sm ${
-                      isAI ? 'bg-primary/10 text-primary' : 'bg-neutral-800 text-white'
-                    }`}>
+                    <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center shadow-sm ${isAI ? 'bg-primary/10 text-primary' : 'bg-neutral-800 text-white'
+                      }`}>
                       {isAI ? <MessageCircle size={16} /> : <UserIcon size={16} />}
                     </div>
 
@@ -120,12 +119,11 @@ const Chat = () => {
                       <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground px-1">
                         {isAI ? 'AI Assistant' : 'You'}
                       </span>
-                      
-                      <div className={`rounded-2xl px-4 md:px-5 py-3 text-sm md:text-base leading-relaxed shadow-sm break-words max-w-full overflow-hidden ${
-                        isAI 
-                          ? 'bg-card text-card-foreground border border-border' 
-                          : 'bg-primary text-white shadow-lg shadow-primary/20'
-                      }`} style={{ overflowWrap: 'anywhere' }}>
+
+                      <div className={`rounded-2xl px-4 md:px-5 py-3 text-sm md:text-base leading-relaxed shadow-sm break-words max-w-full overflow-hidden ${isAI
+                        ? 'bg-card text-card-foreground border border-border'
+                        : 'bg-primary text-white shadow-lg shadow-primary/20'
+                        }`} style={{ overflowWrap: 'anywhere' }}>
                         {isAI ? (
                           isLastmsg && isLatestAI.current ? (
                             <Typewriter text={msg.content} onComplete={() => isLatestAI.current = false} />
