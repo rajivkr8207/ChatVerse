@@ -9,7 +9,7 @@ import helmet from "helmet";
 import rateLimit from "express-rate-limit";
 import compression from "compression";
 import hpp from "hpp";
-
+import path from "path";
 export const Middleware = (app) => {
     app.use(helmet());
 
@@ -43,7 +43,10 @@ export const Middleware = (app) => {
     }));
 
     app.use(express.static('./public/dist'));
-
+    //fallback to index.html for all routes (client-side routing)
+    app.get(/^((?!api\/).*)$/, (req, res) => {
+        res.sendFile(path.resolve("public/dist", "index.html"));
+    });
     app.set('view engine', 'ejs');
 
 };

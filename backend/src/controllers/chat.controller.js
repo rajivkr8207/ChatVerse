@@ -1,11 +1,17 @@
 import ChatModel from "../models/chat.model.js";
 import MessageModel from "../models/message.model.js";
-import { ChatGeminimessage, GenrateMessageTilte } from "../services/ai.server.js";
+import { ChatGeminimessage, GenrateMessageTilte, GenrateTrendingTopics } from "../services/ai.server.js";
 import { chatService } from "../services/chat.service.js";
 import { ApiError } from "../utils/api-error.js";
 import { ApiResponse } from "../utils/api-response.js";
 import { asyncHandler } from "../utils/async-handler.js";
 import { nanoid } from "nanoid";
+
+
+export const trendingTopics = asyncHandler(async (req, res) => {
+    const trendingTopics = await GenrateTrendingTopics()
+    res.status(200).json(new ApiResponse(200, trendingTopics, "Trending Topics fetched successfully"));
+})
 
 export const SendMessage = asyncHandler(async (req, res) => {
     const { message, chatid } = req.body;

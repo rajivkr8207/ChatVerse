@@ -48,7 +48,7 @@ const Dashboard = () => {
   const [inputValue, setInputValue] = useState('')
   const messages = chats[activeChatId]?.messages || []
   const typing = chats[activeChatId]?.typing || false
-  const { handleGetAllChat, setPage, handleDeleteChat, handleGetChatbyId, page, hasMore, loadingMore, } = useChat()
+  const { handleGetAllChat, setPage, handleDeleteChat, handleGetChatbyId, page, hasMore, loadingMore, trendingTopics } = useChat()
   const messagesEndRef = useRef(null);
 
   const toggleSidebar = () => setSidebarOpen(!sidebarOpen);
@@ -274,12 +274,7 @@ const Dashboard = () => {
             {/* Suggestions */}
             {pathname === '/' && (
               <div className="flex flex-wrap justify-center gap-1.5 md:gap-2 landing-content">
-                {[
-                  "Tokyo trip plan",
-                  "Scraping script",
-                  "Decision models",
-                  "Healthy breakfast",
-                ].map((item, i) => (
+                {trendingTopics?.map((item, i) => (
                   <button
                     key={i}
                     onClick={(e) => handleSendMessage(e, item)}

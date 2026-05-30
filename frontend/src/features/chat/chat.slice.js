@@ -3,6 +3,7 @@ import { createSlice } from "@reduxjs/toolkit";
 const initialState = {
     chats: {},
     chatOrder: [],
+    trendingTopics: null,
     activeChatId: null,
     searching: false,
     sharing: false,
@@ -135,6 +136,9 @@ const chatSlice = createSlice({
             state.theme = action.payload;
             localStorage.setItem('theme', state.theme);
         },
+        setTrendingTopics: (state, action) => {
+            state.trendingTopics = action.payload;
+        }
     }
 });
 
@@ -154,6 +158,7 @@ export const {
     setSharing,
     toggleTheme,
     setTheme,
+    setTrendingTopics
 } = chatSlice.actions;
 
 export default chatSlice.reducer;

@@ -1,6 +1,6 @@
 import config from "../config/config.js";
 import { ChatMistralAI, } from "@langchain/mistralai";
-import { AIMessage, HumanMessage,tool, SystemMessage, createAgent } from "langchain"
+import { AIMessage, HumanMessage, tool, SystemMessage, createAgent } from "langchain"
 import { tavily } from "@tavily/core";
 import * as z from "zod";
 const tvly = tavily({
@@ -33,7 +33,7 @@ const mistralmodel = new ChatMistralAI({
 });
 
 const agent = createAgent({
-    model:mistralmodel ,
+    model: mistralmodel,
     tools: [webSearchTool]
 });
 let messages = [
@@ -53,6 +53,15 @@ export async function ChatGeminimessage(msg) {
             return new AIMessage(msg.content)
         }
     }));
+    return res.text
+}
+
+export async function GenrateTrendingTopics() {
+    let traing = `Generate 5 short, clickable trending topic suggestions for the ChatVerse dashboard. Each topic should be 2-4 words long, modern, engaging, and relevant to current trends in AI, technology, startups, productivity, programming, business, health, or travel. Return only an array of topic titles suitable for pill-shaped buttons. i want to return data in only [
+"word","word","word"] like this without anything`
+    const res = await mistralmodel.invoke([
+        new SystemMessage(traing),
+    ]);
     return res.text
 }
 
