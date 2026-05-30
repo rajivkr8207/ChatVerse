@@ -1,0 +1,63 @@
+<%
+/**
+ * Generic modal partial
+ * Expected locals:
+ *   modalId       - unique ID string
+ *   modalTitle    - heading text
+ *   modalMessage  - body message HTML string
+ *   confirmText   - confirm button label
+ *   confirmClass  - tailwind classes for confirm btn (default: 'bg-red-600 hover:bg-red-700')
+ *   cancelText    - cancel button label (default: 'Cancel')
+ *   confirmAction - JS code / href to run on confirm click
+ *   danger        - boolean, show red icon header
+ */
+const _confirmClass = typeof confirmClass !== 'undefined' ? confirmClass : 'bg-red-600 hover:bg-red-700';
+const _cancelText   = typeof cancelText   !== 'undefined' ? cancelText   : 'Cancel';
+const _confirmText  = typeof confirmText  !== 'undefined' ? confirmText  : 'Confirm';
+%>
+<div id="<%= modalId %>" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="<%= modalId %>Title">
+  <!-- Backdrop -->
+  <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" onclick="closeModal('<%= modalId %>')"></div>
+
+  <!-- Panel -->
+  <div class="relative z-10 bg-white dark:bg-gray-900 rounded-2xl shadow-2xl w-full max-w-md border border-gray-200 dark:border-gray-800 animate-fade-in overflow-hidden">
+
+    <!-- Header -->
+    <div class="px-6 pt-6 pb-4 flex items-start gap-4">
+      <% if (typeof danger !== 'undefined' && danger) { %>
+      <div class="flex-shrink-0 w-10 h-10 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-red-600 dark:text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+        </svg>
+      </div>
+      <% } else { %>
+      <div class="flex-shrink-0 w-10 h-10 rounded-full bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-amber-600 dark:text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+        </svg>
+      </div>
+      <% } %>
+      <div class="flex-1 min-w-0">
+        <h3 id="<%= modalId %>Title" class="text-base font-semibold text-gray-900 dark:text-white"><%= modalTitle %></h3>
+        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400 leading-relaxed"><%- modalMessage %></p>
+      </div>
+    </div>
+
+    <!-- Divider -->
+    <div class="h-px bg-gray-100 dark:bg-gray-800 mx-6"></div>
+
+    <!-- Actions -->
+    <div class="px-6 py-4 flex items-center justify-end gap-3">
+      <button
+        onclick="closeModal('<%= modalId %>')"
+        class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-xl transition-colors"
+      ><%= _cancelText %></button>
+
+      <button
+        id="<%= modalId %>ConfirmBtn"
+        class="px-4 py-2 text-sm font-semibold text-white <%= _confirmClass %> rounded-xl transition-colors shadow-sm"
+        onclick="<%= typeof confirmAction !== 'undefined' ? confirmAction : '' %>"
+      ><%= _confirmText %></button>
+    </div>
+  </div>
+</div>
