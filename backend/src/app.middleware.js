@@ -43,10 +43,7 @@ export const Middleware = (app) => {
     }));
 
     app.use(express.static('./public/dist'));
-    //fallback to index.html for all routes (client-side routing)
-    app.get(/^((?!api\/).*)$/, (req, res) => {
-        res.sendFile(path.resolve("public/dist", "index.html"));
-    });
+
     app.set('view engine', 'ejs');
 
 };
