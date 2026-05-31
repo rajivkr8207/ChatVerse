@@ -26,18 +26,16 @@ import gsap from 'gsap';
 import { useGSAP } from '@gsap/react';
 
 const Dashboard = () => {
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(window.innerWidth >= 768 ? true : false);
   const [selectedFile, setSelectedFile] = useState(null);
   const navigate = useNavigate()
   const dispatch = useDispatch()
   const location = useLocation();
-  const theme = useSelector(state => state.chat.theme);
   const pathname = location.pathname;
   const pathid = `${window.location.pathname.split('/')[1]}`
   const deleteid = `${window.location.pathname.split('/')[2]}`
 
   const inputRef = useRef(null);
-  const containerRef = useRef(null);
   const landingRef = useRef(null);
   const fileInputRef = useRef(null);
   const userid = useSelector(state => state.auth.user)

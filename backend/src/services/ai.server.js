@@ -1,34 +1,42 @@
 import config from "../config/config.js";
 import { ChatMistralAI, } from "@langchain/mistralai";
-import { AIMessage, HumanMessage, tool, SystemMessage, createAgent } from "langchain"
+import { createAgent } from "langchain";
+import { AIMessage, HumanMessage, SystemMessage } from "@langchain/core/messages";
+import { tool } from "@langchain/core/tools";
 import { tavily } from "@tavily/core";
 import * as z from "zod";
 const tvly = tavily({
     apiKey: config.TAVILY_KEY,
-    maxResults: 3
 });
 export const webSearchTool = tool(
     async ({ query }) => {
-        const res = await tvly.search(query);
-        const context = res.results
-            .slice(0, 3)
-            .map(r => r.content)
-            .join("\n");
-        return context;
-
+        try {
+            const res = await tvly.search(query, {
+                maxResults: 3,
+            });
+            return JSON.stringify(
+                res.results.map((r) => ({
+                    title: r.title,
+                    content: r.content,
+                    url: r.url
+                }))
+            );
+        } catch (err) {
+            return "Web search failed.";
+        }
     },
     {
         name: "web_search",
-        description: "Search the internet for latest information",
+        description:
+            "Search the internet for latest news, current events, live information and recent updates.",
         schema: z.object({
-            query: z.string().describe("search query for web")
-        })
+            query: z.string(),
+        }),
     }
 );
 
-
 const mistralmodel = new ChatMistralAI({
-    model: "mistral-small-latest",
+    model: "mistral-medium-latest",
     apiKey: config.MISTRAL_API_KEY
 });
 
@@ -36,24 +44,29 @@ const agent = createAgent({
     model: mistralmodel,
     tools: [webSearchTool]
 });
-let messages = [
-    {
-        role: "ai",
-        content:
-            "If you don't know the answer or the question requires latest information, use the web_search tool."
+
+export async function ChatGeminimessage(messages) {
+    try {
+        const formattedMessages = messages.map((msg) => {
+            if (msg.role === "user") {
+                return new HumanMessage(msg.content);
+            }
+            return new AIMessage(msg.content);
+        });
+
+        const result = await agent.invoke({
+            messages: [
+                new SystemMessage(
+                    "You are ChatVerse AI. If the user asks about current events, latest news, live information, stock prices, trends, weather, or anything requiring recent information, always use the web_search tool."
+                ),
+                ...formattedMessages,
+            ],
+        });
+        let answer = result.messages[result.messages.length - 1].content
+        return answer || answer[0].text
+    } catch (error) {
+        return "Something went wrong.";
     }
-]
-
-
-export async function ChatGeminimessage(msg) {
-    const res = await mistralmodel.invoke(msg.map(msg => {
-        if (msg.role == "user") {
-            return new HumanMessage(msg.content)
-        } else {
-            return new AIMessage(msg.content)
-        }
-    }));
-    return res.text
 }
 
 export async function GenrateTrendingTopics() {

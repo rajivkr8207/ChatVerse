@@ -19,7 +19,8 @@ import { setActiveChat, setSearching, toggleTheme } from "../chat.slice";
 import Button from "../../../components/common/Button";
 import { useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-
+import remarkGfm from 'remark-gfm';
+import ReactMarkdown from 'react-markdown';
 export default function Sidebar({ toggleSidebar, page, setPage, hasMore, sidebarOpen, startNewChat, deleteChat }) {
   const activeChatId = useSelector(state => state.chat.activeChatId);
   const chats = useSelector(state => state.chat.chats);
@@ -166,7 +167,9 @@ export default function Sidebar({ toggleSidebar, page, setPage, hasMore, sidebar
                           <MessageCircle size={14} className={isActive ? 'text-primary' : 'text-muted-foreground group-hover:text-primary'} />
                         </div>
                         <span className={`text-sm font-bold truncate ${isActive ? 'opacity-100' : 'opacity-80 group-hover:opacity-100'}`}>
-                          {chat.title}
+                          <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                            {chat.title}
+                          </ReactMarkdown>
                         </span>
                       </div>
 
