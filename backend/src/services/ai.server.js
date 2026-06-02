@@ -14,13 +14,9 @@ export const webSearchTool = tool(
             const res = await tvly.search(query, {
                 maxResults: 3,
             });
-            return JSON.stringify(
-                res.results.map((r) => ({
-                    title: r.title,
-                    content: r.content,
-                    url: r.url
-                }))
-            );
+            return res.results
+                .map((result) => `${result.title}: ${result.link}`)
+                .join("\n");
         } catch (err) {
             return "Web search failed.";
         }

@@ -33,7 +33,10 @@ const useAuth = () => {
     const handleLogin = async ({ identifier, password }) => {
         try {
             dispatch(setLoading(true))
+
+            console.log({ identifier, password });
             const res = await LoginUser({ identifier, password })
+            console.log(res);
             toast.success(res.message)
             dispatch(setUser(res.data))
         } catch (error) {

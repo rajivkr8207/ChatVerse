@@ -1,6 +1,7 @@
 import { Server } from 'socket.io'
 import { handleSocketChat } from './chat.socket.js';
 import config from '../config/config.js';
+import logger from '../config/logger.js';
 
 
 let io
@@ -12,15 +13,15 @@ export function initSocket(httpServer) {
         }
     })
 
-    console.log(`socket io server is running`);
+    logger.info(`socket io server is running`);
     io.on('connection', (socket) => {
-        console.log(`user is connected`, socket.id);
-       
+        logger.info(`user is connected`, socket.id);
+
 
         handleSocketChat(socket);
 
         socket.on("disconnect", () => {
-            console.log("User disconnected:", socket.id);
+            logger.info("User disconnected:", socket.id);
         });
     })
 }

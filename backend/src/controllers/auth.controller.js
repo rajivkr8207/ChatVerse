@@ -5,8 +5,10 @@ import { sendForgotPasswordEmail, sendVerificationEmail } from "../services/emai
 import { ApiError } from "../utils/api-error.js";
 import { ApiResponse } from "../utils/api-response.js";
 import { asyncHandler } from "../utils/async-handler.js";
-import { genrateJWTtoken } from "../helpers/genrateJWTtoken.js"
+import { genrateJWTtokenSaveCookie } from "../helpers/genrateJWTtoken.js"
 import bcrypt from "bcrypt";
+import { redis } from "../config/redis.js";
+import { manageAccessToken } from "../helpers/genrateAcccessToken.js";
 const cookieOptions = {
     httpOnly: true,
     secure: config.NODE_ENV === "production",
@@ -50,8 +52,8 @@ export const googleCallback = asyncHandler(async (req, res) => {
         isVerified: user.isVerified,
         provider: user.provider
     };
-    const token = genrateJWTtoken(payload);
-    res.cookie("chatverse_token", token, cookieOptions);
+
+    await genrateJWTtokenSaveCookie(payload, res);
     res.redirect(`${config.FRONTEND_URL}/`)
 })
 
@@ -73,8 +75,12 @@ export const registerUser = asyncHandler(async (req, res) => {
         verificationToken: token,
         verificationTokenExpire: tokenExpire
     });
-    const verifyLink = `${config.FRONTEND_URL}/verify/${token}`;
-    sendVerificationEmail(email, fullName, verifyLink)
+    const pyaload = {
+        id: user._id,
+        isVerified: user.isVerified,
+        provider: user.provider
+    }
+    await genrateJWTtokenSaveCookie(pyaload, res)
     res.status(201).json(new ApiResponse(201, user, "User Register Successfully"));
 })
 
@@ -82,7 +88,7 @@ export const registerUser = asyncHandler(async (req, res) => {
 export const loginController = asyncHandler(async (req, res) => {
     const { identifier, password } = req.body;
     const user = await authService.findUserWithPassword(identifier);
-
+    console.log(user);
     if (!user) {
         return res.status(400).json({
             success: false,
@@ -98,7 +104,7 @@ export const loginController = asyncHandler(async (req, res) => {
     }
 
     const isMatch = await user.comparePassword(password)
-
+    console.log(isMatch);
     if (!isMatch) {
         return res.status(400).json({
             success: false,
@@ -111,12 +117,8 @@ export const loginController = asyncHandler(async (req, res) => {
         isVerified: user.isVerified,
         provider: user.provider
     };
-    const token = genrateJWTtoken(payload)
-
-    res.cookie('chatverse_token', token, cookieOptions)
-
+    await genrateJWTtokenSaveCookie(payload, res)
     res.status(200).json(new ApiResponse(200, payload, "Login successful"));
-
 }
 )
 
@@ -132,9 +134,7 @@ export const SendAgainVerifyMail = asyncHandler(async (req, res) => {
     const { token, tokenExpire } = generateVerificationToken();
     await authService.setVerificationToken(existingUser._id, token, tokenExpire)
     const verifyLink = `${config.FRONTEND_URL}/verify/${token}`;
-
     sendVerificationEmail(email, existingUser.fullName, verifyLink)
-
     res.status(200).json(new ApiResponse(200, { message: "verification mail send succssfully" }));
 })
 
@@ -183,7 +183,19 @@ export const getUserProfile = asyncHandler(async (req, res) => {
         );
 });
 
-
+export const getAccessToken = asyncHandler(async (req, res) => {
+    const refreshToken = req.cookies?.chatverse_refresh_token;
+    if (!refreshToken) {
+        throw new ApiError(409, "Unauthorized request");
+    }
+    const accessToken = await manageAccessToken(refreshToken);
+    res.cookie("chatverse_access_token", accessToken, cookieOptions);
+    return res
+        .status(200)
+        .json(
+            new ApiResponse(200, { accessToken }, "Access token generated successfully")
+        );
+});
 export const get_me = asyncHandler(async (req, res) => {
     const userdata = req.user;
     if (!userdata) {
@@ -197,13 +209,22 @@ export const get_me = asyncHandler(async (req, res) => {
 });
 
 export const LogoutUser = asyncHandler(async (req, res) => {
-    res.clearCookie('chatverse_token')
+    const accessToken = req.cookies?.chatverse_access_token;
+    await redis.set(
+        `blacklist:${accessToken}`,
+        "true",
+        "EX",
+        1 * 60 * 60 // 1 hour
+    );
+    res.clearCookie('chatverse_access_token')
+    res.clearCookie('chatverse_refresh_token')
     return res
         .status(200)
         .json(
             new ApiResponse(200, "User logout successfully")
         );
 });
+
 
 export const UserChangePassword = asyncHandler(async (req, res) => {
 

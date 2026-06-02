@@ -1,5 +1,5 @@
 import express from 'express'
-import { LogoutUser, SendAgainVerifyMail, UserChangePassword, forgetPasswordRequest, forgetPasswordverifyController, getUserProfile, get_me, googleCallback, loginController, registerUser, verifyAccountController } from '../controllers/auth.controller.js'
+import { LogoutUser, SendAgainVerifyMail, UserChangePassword, forgetPasswordRequest, forgetPasswordverifyController, getAccessToken, getUserProfile, get_me, googleCallback, loginController, registerUser, verifyAccountController } from '../controllers/auth.controller.js'
 import { changePasswordValidator, loginValidator, userRegisterValidator } from '../validators/auth.validate.js'
 import { verifyUser } from '../middleware/auth.middleware.js'
 import passport from 'passport'
@@ -23,6 +23,7 @@ AuthRouter.get("/verify/:token", verifyAccountController);
 AuthRouter.patch('/send/mail/:email', SendAgainVerifyMail)
 AuthRouter.get('/profile', verifyUser, getUserProfile)
 AuthRouter.get('/get-me', verifyUser, get_me)
+AuthRouter.get('/refresh-token', getAccessToken)
 AuthRouter.get('/logout', verifyUser, LogoutUser)
 AuthRouter.patch("/change-password", verifyUser, changePasswordValidator, UserChangePassword);
 AuthRouter.put('/forgot/password', forgetPasswordRequest)

@@ -28,7 +28,15 @@ export default function Login() {
         e.preventDefault();
         await handleLogin(formData)
     };
+    const handleDemoLogin = async () => {
+        const demoCredentials = {
+            identifier: "test",
+            password: "test@1234",
+        };
 
+        setFormData(demoCredentials);
+        await handleLogin(demoCredentials);
+    };
 
     return (
         <div className="min-h-screen flex items-center justify-center text-white">
@@ -77,6 +85,15 @@ export default function Login() {
                         disabled={loading}
                         className="w-full py-3"
                     >{loading ? 'loading..' : "Login"}</Button>
+
+                    <Button
+                        type="button"
+                        disabled={loading}
+                        onClick={handleDemoLogin}
+                        className="w-full py-3 mt-3 bg-neutral-700 hover:bg-neutral-600"
+                    >
+                        Demo Login
+                    </Button>
                 </form>
                 <div className="relative my-6">
                     <div className="absolute inset-0 flex items-center">
