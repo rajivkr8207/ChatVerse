@@ -1,10 +1,11 @@
 import express from "express";
 import { errorHandler } from "./middleware/error.middleware.js";
+import { Middleware } from "./app.middleware.js";
+import path from "path";
+import HealthRouter from "./routes/healthcheck.route.js";
 import AuthRouter from "./routes/auth.route.js";
 import ChatRouter from "./routes/chat.route.js";
-import { Middleware } from "./app.middleware.js";
 import AdminRouter from "./routes/admin.route.js";
-import path from "path";
 const app = express()
 
 
@@ -18,11 +19,10 @@ app.get('/health', (req, res) => {
 
 
 
+app.use('/api/health', HealthRouter)
 app.use('/api/auth', AuthRouter)
 app.use("/api/chat", ChatRouter);
 app.use("/api/admin", AdminRouter);
-
-//fallback to index.html for all routes (client-side routing)
 app.get(/^((?!api\/).*)$/, (req, res) => {
     res.sendFile(path.resolve("public/dist", "index.html"));
 });
