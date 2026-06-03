@@ -1,9 +1,13 @@
-FROM node:20-alpine as build
+FROM node:20
 
 WORKDIR /app
 
-COPY . .
-RUN npm install && npm run build
+COPY package*.json ./
 
-FROM nginx:alpine
-COPY --from=build /app/dist /usr/share/nginx/html
+RUN npm install
+
+COPY . .
+
+EXPOSE 5173
+
+CMD ["npm", "run", "dev"]

@@ -18,7 +18,10 @@ const config = {
     CORSORIGIN1: process.env.CORSORIGIN1,
     CORSORIGIN2: process.env.CORSORIGIN2,
     GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID,
-    GOOGLE_SECRET_CODE: process.env.GOOGLE_SECRET_CODE
+    GOOGLE_SECRET_CODE: process.env.GOOGLE_SECRET_CODE,
+    REDIS_HOST: process.env.REDIS_HOST,
+    REDIS_PORT: process.env.REDIS_PORT,
+    REDIS_PASSWORD: process.env.REDIS_PASSWORD,
 }
 
 export default config

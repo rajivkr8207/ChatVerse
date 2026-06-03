@@ -1,5 +1,6 @@
 import nodemailer from 'nodemailer'
 import config from './config.js';
+import logger from './logger.js';
 const MailTranspoter = nodemailer.createTransport({
     host: config.MAIL_HOST,
     port: 587,
@@ -11,7 +12,7 @@ const MailTranspoter = nodemailer.createTransport({
 });
 
 MailTranspoter.verify()
-    .then(() => { console.log("Email transporter is ready to send emails"); })
-    .catch((err) => { console.error("Email transporter verification failed:", err); });
+    .then(() => { logger.info("Email transporter is ready to send emails"); })
+    .catch((err) => { logger.error("Email transporter verification failed:", err); });
 
 export default MailTranspoter;

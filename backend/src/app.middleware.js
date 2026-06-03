@@ -21,16 +21,19 @@ export const Middleware = (app) => {
     }));
 
     const limiter = rateLimit({
-        windowMs: 15 * 60 * 1000, // 15 minutes
-        max: 1000,
-        message: 'Too many requests from this IP, please try again in 15 minutes'
+        windowMs: 1 * 60 * 1000, // 1 minutes
+        max: 100,
+        message: 'Too many requests from this IP, please try again in 15 minutes',
+        standardHeaders: true,
+        legacyHeaders: false,
     });
     app.use('/api', limiter);
     app.use(express.json({ limit: '16kb' }));
     app.use(express.urlencoded({ extended: true, limit: '16kb' }));
-    // app.use(mongoSanitize());
     app.use(hpp());
-    app.use(morgan('dev'));
+    if (config.NODE_ENV === 'development') {
+        app.use(morgan('dev'));
+    }
     app.use(cookieParser());
 
     app.use(passport.initialize());

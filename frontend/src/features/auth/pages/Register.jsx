@@ -36,7 +36,7 @@ export default function Register() {
     }
     const res = await handleRegister(formData)
     if (res.success) {
-      navigate('/login')
+      navigate('/')
     }
   };
 
