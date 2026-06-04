@@ -31,7 +31,7 @@ export default function Login() {
     const handleDemoLogin = async () => {
         const demoCredentials = {
             identifier: "test",
-            password: "test@1234",
+            password: "Test@123",
         };
 
         setFormData(demoCredentials);

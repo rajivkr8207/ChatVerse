@@ -18,12 +18,10 @@ const useAuth = () => {
             toast.success('Register successfully')
             return res
         } catch (error) {
-            const message =
-                error?.response?.data?.message ||
+            const message = error?.response?.data?.message ||
                 error.message ||
                 "Something went wrong";
-
-            toast.error(message);
+            toast.error("Invalid Credentials");
             dispatch(setError(message));
         } finally {
             dispatch(setLoading(false))
@@ -33,10 +31,7 @@ const useAuth = () => {
     const handleLogin = async ({ identifier, password }) => {
         try {
             dispatch(setLoading(true))
-
-            console.log({ identifier, password });
             const res = await LoginUser({ identifier, password })
-            console.log(res);
             toast.success(res.message)
             dispatch(setUser(res.data))
         } catch (error) {
@@ -44,8 +39,7 @@ const useAuth = () => {
                 error?.response?.data?.message ||
                 error.message ||
                 "Something went wrong";
-
-            toast.error(message);
+            toast.error("Invalid username or password");
             dispatch(setError(message));
         } finally {
             dispatch(setLoading(false))

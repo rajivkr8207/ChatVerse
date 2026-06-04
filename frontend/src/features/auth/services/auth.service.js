@@ -5,13 +5,11 @@ import { api } from "../../../lib/api/axios";
 
 export async function RegisterUser({ fullName, username, email, password }) {
     const res = await api.post('api/auth/register', { fullName, username, email, password })
-    console.log(res);
     return res.data
 }
 
 export async function LoginUser({ identifier, password }) {
     const res = await api.post('api/auth/login', { identifier, password })
-    console.log(res);
     return res.data
 }
 
