@@ -37,6 +37,9 @@ jobs:
       env:
         NODE_ENV: test
         JWT_SECRET: testsecret
+        TAVILY_API_KEY: test-tavily-api-key
+        TAVILY_KEY: test-tavily-api-key
+        
         # Add any other required env variables here
 
   frontend-build:

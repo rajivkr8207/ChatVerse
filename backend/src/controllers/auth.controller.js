@@ -75,6 +75,7 @@ export const registerUser = asyncHandler(async (req, res) => {
         verificationToken: token,
         verificationTokenExpire: tokenExpire
     });
+    console.log(user)
     const pyaload = {
         id: user._id,
         isVerified: user.isVerified,
@@ -88,7 +89,6 @@ export const registerUser = asyncHandler(async (req, res) => {
 export const loginController = asyncHandler(async (req, res) => {
     const { identifier, password } = req.body;
     const user = await authService.findUserWithPassword(identifier);
-    console.log(user);
     if (!user) {
         return res.status(400).json({
             success: false,
