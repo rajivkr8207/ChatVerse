@@ -11,7 +11,6 @@ import ResendVerifyMail from "../features/auth/pages/ResendVerifyMail"
 import SharingChat from "../features/chat/pages/SharingChat"
 import ForgotPassword from "../features/auth/pages/ForgotPassword"
 import VerifyForgotPassword from "../features/auth/pages/VerifyForgotPassword"
-import NotFound from "../features/common/pages/NotFound"
 
 export const Router = createBrowserRouter([
     {
@@ -71,9 +70,4 @@ export const Router = createBrowserRouter([
         path: "/resend/verifyemail",
         element: <ResendVerifyMail />
     },
-    {
-        path: "*",
-        element: <NotFound />
-    },
-
 ])
