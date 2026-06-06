@@ -24,7 +24,7 @@ app.use('/api/auth', AuthRouter)
 app.use("/api/chat", ChatRouter);
 app.use("/api/admin", AdminRouter);
 app.get(/^((?!api\/).*)$/, (req, res) => {
-    res.sendFile(path.resolve("public/dist", "index.html"));
+    res.sendFile(path.resolve("./public/dist", "index.html"));
 });
 app.use(errorHandler);
 export default app;
