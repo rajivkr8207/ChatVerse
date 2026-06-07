@@ -22,9 +22,5 @@ app.use('/api/health', HealthRouter)
 app.use('/api/auth', AuthRouter)
 app.use("/api/chat", ChatRouter);
 
-app.get("*", (req, res) => {
-    res.sendFile(path.resolve("public", "dist", "index.html"));
-});
-
 app.use(errorHandler);
 export default app;
