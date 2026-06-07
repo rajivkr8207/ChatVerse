@@ -5,7 +5,6 @@ import path from "path";
 import HealthRouter from "./routes/healthcheck.route.js";
 import AuthRouter from "./routes/auth.route.js";
 import ChatRouter from "./routes/chat.route.js";
-import AdminRouter from "./routes/admin.route.js";
 const app = express()
 
 
@@ -22,9 +21,8 @@ app.get('/health', (req, res) => {
 app.use('/api/health', HealthRouter)
 app.use('/api/auth', AuthRouter)
 app.use("/api/chat", ChatRouter);
-app.use("/api/admin", AdminRouter);
 app.get(/^((?!api\/).*)$/, (req, res) => {
-    res.sendFile(path.resolve("public/dist", "index.html"));
+    res.sendFile(path.resolve("./public/dist", "index.html"));
 });
 app.use(errorHandler);
 export default app;
