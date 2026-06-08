@@ -24,6 +24,6 @@ RUN npm install
 COPY ./backend /app
 
 
-COPY --from=frontend_builder /app/dist /app/public
+COPY --from=frontend_builder /app/dist /app/public/dist
 
 CMD [ "npm","start" ]
