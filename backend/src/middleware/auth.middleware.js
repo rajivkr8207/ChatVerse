@@ -2,7 +2,7 @@ import jwt from "jsonwebtoken";
 import { ApiError } from "../utils/api-error.js";
 import config from "../config/config.js";
 import { authService } from "../services/auth.service.js";
-import { redis } from "../config/redis.js";
+// import { redis } from "../config/redis.js";
 
 export const verifyUser = async (req, res, next) => {
     const token = req.cookies?.chatverse_access_token
