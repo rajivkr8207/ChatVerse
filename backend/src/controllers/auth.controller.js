@@ -7,10 +7,6 @@ import { ApiResponse } from "../utils/api-response.js";
 import { asyncHandler } from "../utils/async-handler.js";
 import { genrateJWTtokenSaveCookie } from "../helpers/genrateJWTtoken.js"
 import bcrypt from "bcrypt";
-<<<<<<< HEAD
-// import { redis } from "../config/redis.js";
-=======
->>>>>>> origin/main
 import { manageAccessToken } from "../helpers/genrateAcccessToken.js";
 const cookieOptions = {
     httpOnly: true,
@@ -211,15 +207,12 @@ export const get_me = asyncHandler(async (req, res) => {
 
 export const LogoutUser = asyncHandler(async (req, res) => {
     const accessToken = req.cookies?.chatverse_access_token;
-<<<<<<< HEAD
     // await redis.set(
     //     `blacklist:${accessToken}`,
     //     "true",
     //     "EX",
     //     1 * 60 * 60 // 1 hour
     // );
-=======
->>>>>>> origin/main
     res.clearCookie('chatverse_access_token')
     res.clearCookie('chatverse_refresh_token')
     return res
