@@ -46,5 +46,4 @@ export const Middleware = (app) => {
     }));
 
     app.use(express.static('./public/dist'));
-    // app.set('view engine', 'ejs');
 };
