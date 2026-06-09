@@ -7,6 +7,7 @@ import { ApiResponse } from "../utils/api-response.js";
 import { asyncHandler } from "../utils/async-handler.js";
 import { genrateJWTtokenSaveCookie } from "../helpers/genrateJWTtoken.js"
 import bcrypt from "bcrypt";
+// import { redis } from "../config/redis.js";
 import { manageAccessToken } from "../helpers/genrateAcccessToken.js";
 const cookieOptions = {
     httpOnly: true,
