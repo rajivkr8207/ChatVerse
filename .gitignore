@@ -1,2 +1,4 @@
 /*/.env
 .github/*
+!.github/workflows
+!.github/workflows/**
