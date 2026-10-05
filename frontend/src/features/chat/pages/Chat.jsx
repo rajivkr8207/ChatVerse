@@ -15,7 +15,8 @@ import socket from '../../../lib/socket/socket';
 import TypingIndicator from '../components/TypingIndicator';
 import { useNavigate, useParams } from 'react-router-dom';
 import Typewriter from '../../../components/common/Typewriter';
-import { motion, AnimatePresence } from 'framer-motion';
+import { AnimatePresence, motion } from 'framer-motion';
+import { toast } from 'react-toastify';
 
 const Chat = () => {
   const { chatid } = useParams();
@@ -76,9 +77,19 @@ const Chat = () => {
       dispatch(setTyping({ chatId, typing: status }));
     });
 
+    const handleChatError = ({ chatId, message }) => {
+      dispatch(setTyping({
+        chatId: chatId || chatIdRef.current,
+        typing: false,
+      }));
+      toast.error(message || "The AI could not generate a response. Please try again.");
+    };
+    socket.on("chat_error", handleChatError);
+
     return () => {
       socket.off("receive_message");
       socket.off("typing");
+      socket.off("chat_error", handleChatError);
     };
   }, [chats]);
 

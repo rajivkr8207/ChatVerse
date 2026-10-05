@@ -6,6 +6,7 @@ import { chatRagService, queryEmbeddings } from '../services/rag.service.js';
 
 export const handleSocketChat = (socket) => {
     socket.on("send_message", async (data, callback) => {
+        let currentChatId = data?.chatid;
         try {
             const { message, chatid, userid, file } = data;
             let title = null;
@@ -16,7 +17,7 @@ export const handleSocketChat = (socket) => {
                 chat = await chatService.createChat(userid, title);
             }
 
-            const currentChatId = chatid || chat._id;
+            currentChatId = chatid || chat._id;
 
             await chatService.createMessage(
                 currentChatId,
@@ -32,7 +33,7 @@ export const handleSocketChat = (socket) => {
                 });
             }
 
-            socket.emit("typing", true);
+            socket.emit("typing", { chatId: currentChatId, status: true });
             if (file) {
                 const docid = nanoid();
                 const response = await chatRagService(file, docid, userid, message)
@@ -45,7 +46,7 @@ export const handleSocketChat = (socket) => {
                     null,
                     file
                 );
-                socket.emit("typing", false);
+                socket.emit("typing", { chatId: currentChatId, status: false });
                 socket.emit("receive_message", { chat, aimesg });
 
                 return;
@@ -53,10 +54,10 @@ export const handleSocketChat = (socket) => {
 
             const chatData = await chatService.getChatById(currentChatId);
             let context = ""
-            if (chatData?.activeDocumentId) {
+            if (chatData?.chat?.activeDocumentId) {
                 context = await queryEmbeddings(
                     message,
-                    chatData.activeDocumentId,
+                    chatData.chat.activeDocumentId,
                     userid
                 );
             }
@@ -85,12 +86,20 @@ export const handleSocketChat = (socket) => {
                 "ai",
                 userid
             );
-            socket.emit("typing", false);
+            socket.emit("typing", { chatId: currentChatId, status: false });
             socket.emit("receive_message", { chat, aimesg });
 
         } catch (err) {
             console.error(err);
-            socket.emit("error", "Something went wrong");
+            socket.emit("typing", { chatId: currentChatId, status: false });
+            const status = err.statusCode || err.status || err.response?.status;
+            const rateLimited = status === 429 || /\b429\b|rate.?limit/i.test(err.message || "");
+            socket.emit("chat_error", {
+                chatId: currentChatId,
+                message: rateLimited
+                    ? "The AI service is temporarily rate limited. Please wait a little and try again."
+                    : "The AI could not generate a response. Please try again."
+            });
         }
     });
 };

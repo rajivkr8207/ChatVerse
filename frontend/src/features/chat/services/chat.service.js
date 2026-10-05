@@ -42,5 +42,6 @@ export async function GetShareChatApi(chatid) {
 
 export async function GetTrendingTopics() {
     const res = await api.get(`api/chat/trending-topics`)
+    console.log(res)
     return res.data
 }

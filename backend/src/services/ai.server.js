@@ -5,6 +5,40 @@ import { AIMessage, HumanMessage, SystemMessage } from "@langchain/core/messages
 import { tool } from "@langchain/core/tools";
 import { tavily } from "@tavily/core";
 import * as z from "zod";
+
+const TRENDING_TOPICS_CACHE_TTL = 30 * 60 * 1000;
+const TRENDING_TOPICS_RATE_LIMIT_RETRY_DELAY = 5 * 60 * 1000;
+let trendingTopicsCache;
+let trendingTopicsRequest;
+
+function getMessageText(message) {
+    const { content } = message;
+    let text;
+
+    if (typeof content === "string") {
+        text = content;
+    } else if (Array.isArray(content)) {
+        text = content
+            .map((part) => typeof part === "string" ? part : typeof part?.text === "string" ? part.text : "")
+            .filter(Boolean)
+            .join("");
+    } else {
+        throw new Error("Mistral returned an unsupported response format.");
+    }
+
+    if (!text.trim()) {
+        throw new Error("Mistral returned an empty response.");
+    }
+
+    return text;
+}
+
+function requireMistralApiKey() {
+    if (!config.MISTRAL_API_KEY) {
+        throw new Error("MISTRAL_API_KEY is not configured.");
+    }
+}
+
 const tvly = tavily({
     apiKey: config.TAVILY_KEY,
 });
@@ -42,44 +76,75 @@ const agent = createAgent({
 });
 
 export async function ChatGeminimessage(messages) {
-    try {
-        const formattedMessages = messages.map((msg) => {
-            if (msg.role === "user") {
-                return new HumanMessage(msg.content);
-            }
-            return new AIMessage(msg.content);
-        });
+    requireMistralApiKey();
+    const formattedMessages = messages.map((msg) => {
+        if (msg.role === "user") {
+            return new HumanMessage(msg.content);
+        }
+        return new AIMessage(msg.content);
+    });
 
-        const result = await agent.invoke({
-            messages: [
-                new SystemMessage(
-                    "You are ChatVerse AI. If the user asks about current events, latest news, live information, stock prices, trends, weather, or anything requiring recent information, always use the web_search tool."
-                ),
-                ...formattedMessages,
-            ],
-        });
-        let answer = result.messages[result.messages.length - 1].content
-        return answer || answer[0].text
-    } catch (error) {
-        return "Something went wrong.";
+    const result = await agent.invoke({
+        messages: [
+            new SystemMessage(
+                "You are ChatVerse AI. If the user asks about current events, latest news, live information, stock prices, trends, weather, or anything requiring recent information, always use the web_search tool."
+            ),
+            ...formattedMessages,
+        ],
+    });
+    const finalMessage = [...result.messages]
+        .reverse()
+        .find((message) => message instanceof AIMessage);
+
+    if (!finalMessage) {
+        throw new Error("Mistral did not return an AI response.");
     }
+
+    return getMessageText(finalMessage);
 }
 
 export async function GenrateTrendingTopics() {
-    let traing = `Generate 5 short, clickable trending topic suggestions for the ChatVerse dashboard. Each topic should be 2-4 words long, modern, engaging, and relevant to current trends in AI, technology, startups, productivity, programming, business, health, or travel. Return only an array of topic titles suitable for pill-shaped buttons. i want to return data in only [
+    if (trendingTopicsCache && trendingTopicsCache.expiresAt > Date.now()) {
+        return trendingTopicsCache.value;
+    }
+
+    if (trendingTopicsRequest) {
+        return trendingTopicsRequest;
+    }
+    trendingTopicsRequest = (async () => {
+        requireMistralApiKey();
+        const prompt = `Generate 5 short, clickable trending topic suggestions for the ChatVerse dashboard. Each topic should be 2-4 words long, modern, engaging, and relevant to current trends in AI, technology, startups, productivity, programming, business, health, or travel. Return only an array of topic titles suitable for pill-shaped buttons. i want to return data in only [
 "word","word","word"] like this without anything`
-    const res = await mistralmodel.invoke([
-        new SystemMessage(traing),
-    ]);
-    return res.text
+
+        try {
+            const response = await mistralmodel.invoke([
+                new SystemMessage(prompt),
+            ]);
+            const value = getMessageText(response);
+            trendingTopicsCache = {
+                value,
+                expiresAt: Date.now() + TRENDING_TOPICS_CACHE_TTL,
+            };
+            return value;
+        } catch (error) {
+            const status = error.statusCode || error.status || error.response?.status;
+            if (status === 429 && trendingTopicsCache) {
+                trendingTopicsCache.expiresAt =
+                    Date.now() + TRENDING_TOPICS_RATE_LIMIT_RETRY_DELAY;
+                return trendingTopicsCache.value;
+            }
+            throw error;
+        }
+    })();
+
+    try {
+        return await trendingTopicsRequest;
+    } finally {
+        trendingTopicsRequest = undefined;
+    }
 }
 
 export async function GenrateMessageTilte(text) {
-    const res = await mistralmodel.invoke([
-        new SystemMessage("You are an assistant. Generate a descriptive title  for chat   you provide only in 2-4 words."),
-        new HumanMessage(`
-            genrate a title for a chat conversation based on following first message: ${text}
-            `)
-    ]);
-    return res.text
+    const title = text.trim().split(/\s+/).slice(0, 5).join(" ");
+    return title.length > 40 ? `${title.slice(0, 37).trimEnd()}...` : title;
 }
