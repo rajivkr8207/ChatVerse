@@ -23,7 +23,6 @@ describe('Chat API', () => {
   let userId;
 
   beforeEach(async () => {
-    // Create a user and generate a token
     const user = await UserModel.create({
       fullName: 'Chat User',
       username: 'chatuser',
