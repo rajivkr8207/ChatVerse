@@ -1,16 +1,26 @@
-import express from 'express'
-import { verifyUser } from '../middleware/auth.middleware.js'
-import { ChatDeleteById, CreateNewChat, GetAllchat, GetChatById, getPublicChat, makeChatPublic, searchChats, SendMessage, trendingTopics } from '../controllers/chat.controller.js'
+import express from 'express';
+import { verifyUser } from '../middleware/auth.middleware.js';
+import {
+  ChatDeleteById,
+  CreateNewChat,
+  GetAllchat,
+  GetChatById,
+  getPublicChat,
+  makeChatPublic,
+  searchChats,
+  SendMessage,
+  trendingTopics,
+} from '../controllers/chat.controller.js';
 
-const ChatRouter = express.Router()
+const ChatRouter = express.Router();
 
-ChatRouter.get('/trending-topics', verifyUser, trendingTopics)
-ChatRouter.post('/messages', verifyUser, SendMessage)
-ChatRouter.get('/', verifyUser, GetAllchat)
-ChatRouter.get('/search', verifyUser, searchChats)
-ChatRouter.get('/:chatid', verifyUser, GetChatById)
-ChatRouter.delete('/:chatid', verifyUser, ChatDeleteById)
-ChatRouter.post('/new', verifyUser, CreateNewChat)
-ChatRouter.post("/share/:chatId", verifyUser, makeChatPublic);
-ChatRouter.get("/share/:shareId", verifyUser, getPublicChat)
-export default ChatRouter
+ChatRouter.get('/trending-topics', verifyUser, trendingTopics);
+ChatRouter.post('/messages', verifyUser, SendMessage);
+ChatRouter.get('/', verifyUser, GetAllchat);
+ChatRouter.get('/search', verifyUser, searchChats);
+ChatRouter.get('/:chatid', verifyUser, GetChatById);
+ChatRouter.delete('/:chatid', verifyUser, ChatDeleteById);
+ChatRouter.post('/new', verifyUser, CreateNewChat);
+ChatRouter.post('/share/:chatId', verifyUser, makeChatPublic);
+ChatRouter.get('/share/:shareId', verifyUser, getPublicChat);
+export default ChatRouter;

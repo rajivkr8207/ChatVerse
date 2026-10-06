@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 
-const Typewriter = ({ text, speed = 15, onComplete }) => {
+const Typewriter = ({ text, speed = 0, onComplete }) => {
   const [displayedText, setDisplayedText] = useState('');
   const [index, setIndex] = useState(0);
 

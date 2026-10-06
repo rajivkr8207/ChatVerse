@@ -11,10 +11,7 @@ const logLevels = {
 
 const logger = winston.createLogger({
   levels: logLevels,
-  format: winston.format.combine(
-    winston.format.timestamp(),
-    winston.format.json()
-  ),
+  format: winston.format.combine(winston.format.timestamp(), winston.format.json()),
   transports: [
     new winston.transports.File({ filename: 'logs/error.log', level: 'error' }),
     new winston.transports.File({ filename: 'logs/combined.log' }),
@@ -22,9 +19,11 @@ const logger = winston.createLogger({
 });
 
 if (config.NODE_ENV !== 'production') {
-  logger.add(new winston.transports.Console({
-    format: winston.format.simple(),
-  }));
+  logger.add(
+    new winston.transports.Console({
+      format: winston.format.simple(),
+    }),
+  );
 }
 
 export default logger;

@@ -137,7 +137,7 @@ const Chat = () => {
                         }`} style={{ overflowWrap: 'anywhere' }}>
                         {isAI ? (
                           isLastmsg && isLatestAI.current ? (
-                            <Typewriter text={msg.content} onComplete={() => isLatestAI.current = false} />
+                            <Typewriter text={msg.content}  onComplete={() => isLatestAI.current = false} />
                           ) : (
                             <div className="markdown-container prose prose-sm md:prose-base prose-neutral dark:prose-invert max-w-full overflow-x-auto custom-scrollbar">
                               <ReactMarkdown remarkPlugins={[remarkGfm]}>

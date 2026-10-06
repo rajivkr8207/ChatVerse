@@ -110,7 +110,7 @@ const useChat = () => {
     const handleGetTrendis = async () => {
         try {
             const res = await GetTrendingTopics();
-            const data = (JSON.parse(res.data))
+            const data = (res.data)
             dispatch(setTrendingTopics(data));
         } catch (error) {
             console.error(error);

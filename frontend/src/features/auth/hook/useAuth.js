@@ -2,13 +2,11 @@ import { useDispatch } from "react-redux"
 import { setError, setLoading, setUser } from "../auth.slice"
 import { ForgotPassword, ForgotPasswordVerify, LoginUser, RegisterUser, UserChangePassowrd, UserGetMe, Userlogout, UserProfie, VerifyEmailSendAgain } from "../services/auth.service"
 import { toast } from "react-toastify"
-import { useState } from "react"
 
 
 
 const useAuth = () => {
     const dispatch = useDispatch()
-    // const navigate = useNavigate()
 
 
     const handleRegister = async ({ fullName, username, email, password }) => {
@@ -16,6 +14,7 @@ const useAuth = () => {
             dispatch(setLoading(true))
             const res = await RegisterUser({ fullName, username, email, password })
             toast.success('Register successfully')
+            await handleGetme()
             return res
         } catch (error) {
             const message = error?.response?.data?.message ||
@@ -34,6 +33,7 @@ const useAuth = () => {
             const res = await LoginUser({ identifier, password })
             toast.success(res.message)
             dispatch(setUser(res.data))
+            await handleGetme()
         } catch (error) {
             const message =
                 error?.response?.data?.message ||

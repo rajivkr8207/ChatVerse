@@ -132,7 +132,7 @@ export default function Register() {
 
         </form>
 
-        <div className="relative my-6">
+        {/* <div className="relative my-6">
           <div className="absolute inset-0 flex items-center">
             <div className="w-full border-t border-neutral-700"></div>
           </div>
@@ -140,7 +140,7 @@ export default function Register() {
             <span className="px-2 bg-neutral-800 text-neutral-400">Or continue with</span>
           </div>
         </div>
-        <ContinueWithGoogleBtn />
+        <ContinueWithGoogleBtn /> */}
 
         <p className="text-sm text-neutral-400 text-center mt-6">
           Already have an account?

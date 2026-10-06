@@ -75,7 +75,7 @@ const Dashboard = () => {
       file: selectedFile,
       message: value,
       chatid: activeChatId || null,
-      userid: userid.id
+      userid: userid.id || userid._id
     };
 
     if (isNewChat) {

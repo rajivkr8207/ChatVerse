@@ -13,24 +13,24 @@ redis.quit = async () => 'OK';
 let mongoServer;
 
 export const connectTestDB = async () => {
-    mongoServer = await MongoMemoryServer.create();
-    const uri = mongoServer.getUri();
-    await mongoose.connect(uri);
+  mongoServer = await MongoMemoryServer.create();
+  const uri = mongoServer.getUri();
+  await mongoose.connect(uri);
 };
 
 export const closeTestDB = async () => {
-    await mongoose.connection.dropDatabase();
-    await mongoose.connection.close();
-    if (mongoServer) {
-        await mongoServer.stop();
-    }
-    await redis.quit();
+  await mongoose.connection.dropDatabase();
+  await mongoose.connection.close();
+  if (mongoServer) {
+    await mongoServer.stop();
+  }
+  await redis.quit();
 };
 
 export const clearTestDB = async () => {
-    const collections = mongoose.connection.collections;
-    for (const key in collections) {
-        const collection = collections[key];
-        await collection.deleteMany({});
-    }
+  const collections = mongoose.connection.collections;
+  for (const key in collections) {
+    const collection = collections[key];
+    await collection.deleteMany({});
+  }
 };

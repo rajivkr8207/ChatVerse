@@ -1,10 +1,8 @@
-import config from "../config/config.js";
-import MailTranspoter from "../config/mail.js";
-
+import config from '../config/config.js';
+import MailTranspoter from '../config/mail.js';
 
 export const sendVerificationEmail = async (email, name, verifyLink) => {
-    
-    const html = `
+  const html = `
     <div style="font-family: Arial; padding:20px">
       
       <h2>Welcome ${name} 👋</h2>
@@ -34,17 +32,16 @@ export const sendVerificationEmail = async (email, name, verifyLink) => {
     </div>
     `;
 
-    await MailTranspoter.sendMail({
-        from: `${config.MAIL_EMAIL}`,
-        to: email,
-        subject: "Verify your account",
-        html
-    });
+  await MailTranspoter.sendMail({
+    from: `${config.MAIL_EMAIL}`,
+    to: email,
+    subject: 'Verify your account',
+    html,
+  });
 };
 
 export const sendForgotPasswordEmail = async (email, name, resetLink) => {
-    
-    const html = `
+  const html = `
     <div style="font-family: Arial; padding:20px">
       
   
@@ -71,10 +68,10 @@ export const sendForgotPasswordEmail = async (email, name, resetLink) => {
     </div>
     `;
 
-    await MailTranspoter.sendMail({
-        from: `${config.MAIL_EMAIL}`,
-        to: email,
-        subject: "Forgot your password",
-        html
-    });
+  await MailTranspoter.sendMail({
+    from: `${config.MAIL_EMAIL}`,
+    to: email,
+    subject: 'Forgot your password',
+    html,
+  });
 };

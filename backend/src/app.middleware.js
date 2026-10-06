@@ -1,49 +1,55 @@
-import cookieParser from "cookie-parser";
-import morgan from "morgan";
+import cookieParser from 'cookie-parser';
+import morgan from 'morgan';
 import cors from 'cors';
-import config from "./config/config.js";
-import { Strategy as GoogleStrategy } from "passport-google-oauth20";
-import passport from "passport";
-import express from "express";
-import helmet from "helmet";
-import rateLimit from "express-rate-limit";
-import compression from "compression";
-import hpp from "hpp";
-import path from "path";
+import config from './config/config.js';
+import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
+import passport from 'passport';
+import express from 'express';
+import helmet from 'helmet';
+import rateLimit from 'express-rate-limit';
+import compression from 'compression';
+import hpp from 'hpp';
 export const Middleware = (app) => {
-    app.use(helmet());
+  app.use(helmet());
 
-    app.use(compression());
+  app.use(compression());
 
-    app.use(cors({
-        origin: [config.CORSORIGIN1, config.CORSORIGIN2],
-        credentials: true
-    }));
+  app.use(
+    cors({
+      origin: [config.CORSORIGIN1, config.CORSORIGIN2],
+      credentials: true,
+    }),
+  );
 
-    const limiter = rateLimit({
-        windowMs: 1 * 60 * 1000, // 1 minutes
-        max: 100,
-        message: 'Too many requests from this IP, please try again in 15 minutes',
-        standardHeaders: true,
-        legacyHeaders: false,
-    });
-    app.use('/api', limiter);
-    app.use(express.json({ limit: '16kb' }));
-    app.use(express.urlencoded({ extended: true, limit: '16kb' }));
-    app.use(hpp());
-    if (config.NODE_ENV === 'development') {
-        app.use(morgan('dev'));
-    }
-    app.use(cookieParser());
+  const limiter = rateLimit({
+    windowMs: 1 * 60 * 1000, // 1 minutes
+    max: 100,
+    message: 'Too many requests from this IP, please try again in 15 minutes',
+    standardHeaders: true,
+    legacyHeaders: false,
+  });
+  app.use('/api', limiter);
+  app.use(express.json({ limit: '16kb' }));
+  app.use(express.urlencoded({ extended: true, limit: '16kb' }));
+  app.use(hpp());
+  if (config.NODE_ENV === 'development') {
+    app.use(morgan('dev'));
+  }
+  app.use(cookieParser());
 
-    app.use(passport.initialize());
-    passport.use(new GoogleStrategy({
+  app.use(passport.initialize());
+  passport.use(
+    new GoogleStrategy(
+      {
         clientID: config.GOOGLE_CLIENT_ID,
         clientSecret: config.GOOGLE_SECRET_CODE,
-        callbackURL: "/api/auth/google/callback"
-    }, async (accessToken, refreshToken, profile, done) => {
+        callbackURL: '/api/auth/google/callback',
+      },
+      async (accessToken, refreshToken, profile, done) => {
         return done(null, profile);
-    }));
+      },
+    ),
+  );
 
-    app.use(express.static('./public/dist'));
+  app.use(express.static('./public/dist'));
 };

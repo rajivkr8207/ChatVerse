@@ -1,305 +1,269 @@
-import config from "../config/config.js";
-import { generateVerificationToken } from "../helpers/genrateToken.js";
-import { authService } from "../services/auth.service.js";
-import { sendForgotPasswordEmail, sendVerificationEmail } from "../services/email.service.js";
-import { ApiError } from "../utils/api-error.js";
-import { ApiResponse } from "../utils/api-response.js";
-import { asyncHandler } from "../utils/async-handler.js";
-import { genrateJWTtokenSaveCookie } from "../helpers/genrateJWTtoken.js"
-import bcrypt from "bcrypt";
+import config from '../config/config.js';
+import { generateVerificationToken } from '../helpers/genrateToken.js';
+import { authService } from '../services/auth.service.js';
+import { sendForgotPasswordEmail, sendVerificationEmail } from '../services/email.service.js';
+import { ApiError } from '../utils/api-error.js';
+import { ApiResponse } from '../utils/api-response.js';
+import { asyncHandler } from '../utils/async-handler.js';
+import { genrateJWTtokenSaveCookie } from '../helpers/genrateJWTtoken.js';
+import bcrypt from 'bcrypt';
 // import { redis } from "../config/redis.js";
-import { manageAccessToken } from "../helpers/genrateAcccessToken.js";
+import { manageAccessToken } from '../helpers/genrateAcccessToken.js';
 const cookieOptions = {
-    httpOnly: true,
-    secure: config.NODE_ENV === "production",
-    sameSite: "strict",
-    maxAge: 7 * 24 * 60 * 60 * 1000,
+  httpOnly: true,
+  secure: config.NODE_ENV === 'production',
+  sameSite: 'strict',
+  maxAge: 7 * 24 * 60 * 60 * 1000,
 };
 
-
 export const googleCallback = asyncHandler(async (req, res) => {
-    const userprofile = req.user;
-    const { displayName, emails, id } = userprofile
+  const userprofile = req.user;
+  const { displayName, emails, id } = userprofile;
 
-    const email = emails[0].value
-    if (!email) {
-        throw new ApiError(400, "No email found");
+  const email = emails[0].value;
+  if (!email) {
+    throw new ApiError(400, 'No email found');
+  }
+  let user = await authService.findByEmail(email);
+
+  if (!user) {
+    let username = email.split('@')[0];
+    let isTaken = true;
+    while (isTaken) {
+      const exist = await authService.findByUsername(username);
+      if (!exist) {
+        isTaken = false;
+      } else {
+        username = `${username}${Math.floor(1000 + Math.random() * 9000)}`;
+      }
     }
-    let user = await authService.findByEmail(email);
-
-    if (!user) {
-        let username = email.split('@')[0];
-        let isTaken = true;
-        while (isTaken) {
-            const exist = await authService.findByUsername(username);
-            if (!exist) {
-                isTaken = false;
-            } else {
-                username = `${username}${Math.floor(1000 + Math.random() * 9000)}`;
-            }
-        }
-        user = await authService.createUser({
-            fullName: displayName,
-            email,
-            username,
-            googleId: id,
-            isVerified: true,
-            provider: "google"
-        });
-    }
-    const payload = {
-        id: user._id,
-        isVerified: user.isVerified,
-        provider: user.provider
-    };
-
-    await genrateJWTtokenSaveCookie(payload, res);
-    res.redirect(`${config.FRONTEND_URL}/`)
-})
-
-
-
-export const registerUser = asyncHandler(async (req, res) => {
-    const { fullName, username, email, password } = req.body;
-    const existingUser = await authService.findByUsernameAndEmail(username, email);
-    if (existingUser) {
-        throw new ApiError(400, "User already exists");
-    }
-    const { token, tokenExpire } = generateVerificationToken();
-    const user = await authService.createUser({
-        fullName,
-        username,
-        email,
-        password,
-        isVerified: true,
-        verificationToken: token,
-        verificationTokenExpire: tokenExpire
+    user = await authService.createUser({
+      fullName: displayName,
+      email,
+      username,
+      googleId: id,
+      isVerified: true,
+      provider: 'google',
     });
-    const pyaload = {
-        id: user._id,
-        isVerified: user.isVerified,
-        provider: user.provider
-    }
-    await genrateJWTtokenSaveCookie(pyaload, res)
-    res.status(201).json(new ApiResponse(201, user, "User Register Successfully"));
-})
+  }
+  const payload = {
+    id: user._id,
+    isVerified: user.isVerified,
+    provider: user.provider,
+  };
 
-
-export const loginController = asyncHandler(async (req, res) => {
-    const { identifier, password } = req.body;
-    const user = await authService.findUserWithPassword(identifier);
-    if (!user) {
-        return res.status(400).json({
-            success: false,
-            message: "Invalid credentials"
-        });
-    }
-
-    if (user.isBlocked) {
-        return res.status(403).json({
-            success: false,
-            message: "Account is blocked"
-        });
-    }
-
-    const isMatch = await user.comparePassword(password)
-    if (!isMatch) {
-        return res.status(400).json({
-            success: false,
-            message: "Invalid credentials"
-        });
-    }
-
-    const payload = {
-        id: user._id,
-        isVerified: user.isVerified,
-        provider: user.provider
-    };
-    await genrateJWTtokenSaveCookie(payload, res)
-    res.status(200).json(new ApiResponse(200, payload, "Login successful"));
-}
-)
-
-export const SendAgainVerifyMail = asyncHandler(async (req, res) => {
-    const { email } = req.params
-    const existingUser = await authService.findByEmail(email)
-    if (!existingUser) {
-        throw new ApiError(400, `User not exists`);
-    }
-    if (existingUser.isVerified) {
-        throw new ApiError(400, `User already verified`);
-    }
-    const { token, tokenExpire } = generateVerificationToken();
-    await authService.setVerificationToken(existingUser._id, token, tokenExpire)
-    const verifyLink = `${config.FRONTEND_URL}/verify/${token}`;
-    sendVerificationEmail(email, existingUser.fullName, verifyLink)
-    res.status(200).json(new ApiResponse(200, { message: "verification mail send succssfully" }));
-})
-
-export const verifyAccountController = asyncHandler(async (req, res) => {
-    const { token } = req.params;
-    if (!token) {
-        throw new ApiError(400, "Verification token is required");
-    }
-    const user = await authService.FindUserToken(token)
-    if (!user) {
-        throw new ApiError(400, "Invalid or expired verification token");
-    }
-    await authService.verifyUser(user._id)
-    return res.status(200).json(
-        new ApiResponse(200, null, "Account verified successfully")
-    );
-
+  await genrateJWTtokenSaveCookie(payload, res);
+  res.redirect(`${config.FRONTEND_URL}/`);
 });
 
+export const registerUser = asyncHandler(async (req, res) => {
+  const { fullName, username, email, password } = req.body;
+  const existingUser = await authService.findByUsernameAndEmail(username, email);
+  if (existingUser) {
+    throw new ApiError(400, 'User already exists');
+  }
+  const { token, tokenExpire } = generateVerificationToken();
+  const user = await authService.createUser({
+    fullName,
+    username,
+    email,
+    password,
+    isVerified: true,
+    verificationToken: token,
+    verificationTokenExpire: tokenExpire,
+  });
+  const pyaload = {
+    id: user._id,
+    isVerified: user.isVerified,
+    provider: user.provider,
+  };
+  await genrateJWTtokenSaveCookie(pyaload, res);
+  res.status(201).json(new ApiResponse(201, user, 'User Register Successfully'));
+});
+
+export const loginController = asyncHandler(async (req, res) => {
+  const { identifier, password } = req.body;
+  const user = await authService.findUserWithPassword(identifier);
+  if (!user) {
+    return res.status(400).json({
+      success: false,
+      message: 'Invalid credentials',
+    });
+  }
+
+  if (user.isBlocked) {
+    return res.status(403).json({
+      success: false,
+      message: 'Account is blocked',
+    });
+  }
+
+  const isMatch = await user.comparePassword(password);
+  if (!isMatch) {
+    return res.status(400).json({
+      success: false,
+      message: 'Invalid credentials',
+    });
+  }
+
+  const payload = {
+    id: user._id,
+    isVerified: user.isVerified,
+    provider: user.provider,
+  };
+  await genrateJWTtokenSaveCookie(payload, res);
+  res.status(200).json(new ApiResponse(200, payload, 'Login successful'));
+});
+
+export const SendAgainVerifyMail = asyncHandler(async (req, res) => {
+  const { email } = req.params;
+  const existingUser = await authService.findByEmail(email);
+  if (!existingUser) {
+    throw new ApiError(400, `User not exists`);
+  }
+  if (existingUser.isVerified) {
+    throw new ApiError(400, `User already verified`);
+  }
+  const { token, tokenExpire } = generateVerificationToken();
+  await authService.setVerificationToken(existingUser._id, token, tokenExpire);
+  const verifyLink = `${config.FRONTEND_URL}/verify/${token}`;
+  sendVerificationEmail(email, existingUser.fullName, verifyLink);
+  res.status(200).json(new ApiResponse(200, { message: 'verification mail send succssfully' }));
+});
+
+export const verifyAccountController = asyncHandler(async (req, res) => {
+  const { token } = req.params;
+  if (!token) {
+    throw new ApiError(400, 'Verification token is required');
+  }
+  const user = await authService.FindUserToken(token);
+  if (!user) {
+    throw new ApiError(400, 'Invalid or expired verification token');
+  }
+  await authService.verifyUser(user._id);
+  return res.status(200).json(new ApiResponse(200, null, 'Account verified successfully'));
+});
 
 export const getUserProfile = asyncHandler(async (req, res) => {
+  const userId = req.user?.id;
 
-    const userId = req.user?.id;
+  if (!userId) {
+    throw new ApiError(401, 'Unauthorized access');
+  }
 
-    if (!userId) {
-        throw new ApiError(401, "Unauthorized access");
-    }
+  const user = await authService.findById(userId);
 
-    const user = await authService.findById(userId);
-
-    if (!user) {
-        throw new ApiError(404, "User not found");
-    }
-    const userdata = {
-        fullName: user.fullName,
-        email: user.email,
-        username: user.username,
-        id: user._id,
-        provider: user.provider,
-        createdAt: user.createdAt
-    }
-    return res
-        .status(200)
-        .json(
-            new ApiResponse(200, userdata, "User profile fetched successfully")
-        );
+  if (!user) {
+    throw new ApiError(404, 'User not found');
+  }
+  const userdata = {
+    fullName: user.fullName,
+    email: user.email,
+    username: user.username,
+    id: user._id,
+    provider: user.provider,
+    createdAt: user.createdAt,
+  };
+  return res.status(200).json(new ApiResponse(200, userdata, 'User profile fetched successfully'));
 });
 
 export const getAccessToken = asyncHandler(async (req, res) => {
-    const refreshToken = req.cookies?.chatverse_refresh_token;
-    if (!refreshToken) {
-        throw new ApiError(409, "Unauthorized request");
-    }
-    const accessToken = await manageAccessToken(refreshToken);
-    res.cookie("chatverse_access_token", accessToken, cookieOptions);
-    return res
-        .status(200)
-        .json(
-            new ApiResponse(200, { accessToken }, "Access token generated successfully")
-        );
+  const refreshToken = req.cookies?.chatverse_refresh_token;
+  if (!refreshToken) {
+    throw new ApiError(409, 'Unauthorized request');
+  }
+  const accessToken = await manageAccessToken(refreshToken);
+  res.cookie('chatverse_access_token', accessToken, cookieOptions);
+  return res
+    .status(200)
+    .json(new ApiResponse(200, { accessToken }, 'Access token generated successfully'));
 });
 export const get_me = asyncHandler(async (req, res) => {
-    const userdata = req.user;
-    if (!userdata) {
-        throw new ApiError(401, "Unauthorized access");
-    }
-    return res
-        .status(200)
-        .json(
-            new ApiResponse(200, userdata, "User fetched successfully")
-        );
+  const userdata = req.user;
+  if (!userdata) {
+    throw new ApiError(401, 'Unauthorized access');
+  }
+  return res.status(200).json(new ApiResponse(200, userdata, 'User fetched successfully'));
 });
 
 export const LogoutUser = asyncHandler(async (req, res) => {
-    const accessToken = req.cookies?.chatverse_access_token;
-    // await redis.set(
-    //     `blacklist:${accessToken}`,
-    //     "true",
-    //     "EX",
-    //     1 * 60 * 60 // 1 hour
-    // );
-    res.clearCookie('chatverse_access_token')
-    res.clearCookie('chatverse_refresh_token')
-    return res
-        .status(200)
-        .json(
-            new ApiResponse(200, "User logout successfully")
-        );
+  // const accessToken = req.cookies?.chatverse_access_token;
+  // await redis.set(
+  //     `blacklist:${accessToken}`,
+  //     "true",
+  //     "EX",
+  //     1 * 60 * 60 // 1 hour
+  // );
+  res.clearCookie('chatverse_access_token');
+  res.clearCookie('chatverse_refresh_token');
+  return res.status(200).json(new ApiResponse(200, 'User logout successfully'));
 });
 
-
 export const UserChangePassword = asyncHandler(async (req, res) => {
+  const { oldPassword, newPassword } = req.body;
+  if (!oldPassword || !newPassword) {
+    throw new ApiError(400, 'Old password and new password are required');
+  }
 
-    const { oldPassword, newPassword } = req.body
-    if (!oldPassword || !newPassword) {
-        throw new ApiError(400, "Old password and new password are required");
-    }
+  const userId = req.user?.id;
 
-    const userId = req.user?.id;
+  if (!userId) {
+    throw new ApiError(401, 'Unauthorized access');
+  }
 
-    if (!userId) {
-        throw new ApiError(401, "Unauthorized access");
-    }
+  const user = await authService.findById(userId);
 
-    const user = await authService.findById(userId);
+  if (!user) {
+    throw new ApiError(404, 'User not found');
+  }
 
-    if (!user) {
-        throw new ApiError(404, "User not found");
-    }
+  const isPasswordCorrect = await user.comparePassword(oldPassword);
 
-    const isPasswordCorrect = await user.comparePassword(oldPassword)
-
-    if (!isPasswordCorrect) {
-        throw new ApiError(400, "Old password is incorrect");
-    }
-    user.password = newPassword;
-    await user.save();
-    return res
-        .status(200)
-        .json(
-            new ApiResponse(200, null, "Password changed successfully")
-        );
-
-
-})
+  if (!isPasswordCorrect) {
+    throw new ApiError(400, 'Old password is incorrect');
+  }
+  user.password = newPassword;
+  await user.save();
+  return res.status(200).json(new ApiResponse(200, null, 'Password changed successfully'));
+});
 
 export const forgetPasswordRequest = asyncHandler(async (req, res) => {
-    const { email } = req.body;
-    console.log(req.body);
-    if (!email) {
-        throw new ApiError(400, "Email is required");
-    }
-    const user = await authService.findByEmail(email);
-    if (!user) {
-        throw new ApiError(404, "User not found");
-    }
-    const { token, tokenExpire } = generateVerificationToken();
-    await authService.setForgotPasswordToken(user._id, token, tokenExpire)
-    const resetLink = `${config.FRONTEND_URL}/reset-password/${token}`;
-    sendForgotPasswordEmail(email, user.fullName, resetLink)
-    return res
-        .status(200)
-        .json(
-            new ApiResponse(200, null, "Password reset link sent to email")
-        );
-})
+  const { email } = req.body;
+  console.log(req.body);
+  if (!email) {
+    throw new ApiError(400, 'Email is required');
+  }
+  const user = await authService.findByEmail(email);
+  if (!user) {
+    throw new ApiError(404, 'User not found');
+  }
+  const { token, tokenExpire } = generateVerificationToken();
+  await authService.setForgotPasswordToken(user._id, token, tokenExpire);
+  const resetLink = `${config.FRONTEND_URL}/reset-password/${token}`;
+  sendForgotPasswordEmail(email, user.fullName, resetLink);
+  return res.status(200).json(new ApiResponse(200, null, 'Password reset link sent to email'));
+});
 
 export const forgetPasswordverifyController = asyncHandler(async (req, res) => {
-    const { token } = req.params;
-    const { newPassword } = req.body;
-    if (!token) {
-        throw new ApiError(400, "Forgot password token is required");
-    }
-    const user = await authService.FindUserForgotPasswordToken(token)
-    if (!user) {
-        throw new ApiError(400, "Invalid or expired forgot password token");
-    }
-    if (!newPassword) {
-        throw new ApiError(400, "New password is required");
-    }
-    const isSamePassword = await user.comparePassword(newPassword)
-    if (isSamePassword) {
-        throw new ApiError(400, "New password must be different from the old password");
-    }
-    const genpassword = await bcrypt.hash(newPassword, 10)
-    await authService.resetPassword(user._id, genpassword);
-    return res.status(200).json(
-        new ApiResponse(200, { userId: user._id }, "Password reset successfully")
-    );
+  const { token } = req.params;
+  const { newPassword } = req.body;
+  if (!token) {
+    throw new ApiError(400, 'Forgot password token is required');
+  }
+  const user = await authService.FindUserForgotPasswordToken(token);
+  if (!user) {
+    throw new ApiError(400, 'Invalid or expired forgot password token');
+  }
+  if (!newPassword) {
+    throw new ApiError(400, 'New password is required');
+  }
+  const isSamePassword = await user.comparePassword(newPassword);
+  if (isSamePassword) {
+    throw new ApiError(400, 'New password must be different from the old password');
+  }
+  const genpassword = await bcrypt.hash(newPassword, 10);
+  await authService.resetPassword(user._id, genpassword);
+  return res
+    .status(200)
+    .json(new ApiResponse(200, { userId: user._id }, 'Password reset successfully'));
 });
